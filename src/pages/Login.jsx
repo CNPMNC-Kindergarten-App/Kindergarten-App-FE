@@ -44,7 +44,7 @@ export function Login({ onShowRegister }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log("Đăng nhập:", { email, password, userType });
-    alert("Chào mừng bạn đến với Bright Beginnings! 🎉");
+    alert("Đăng nhập thành công 🎉");
   };
 
   return (
