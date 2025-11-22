@@ -1,34 +1,30 @@
-import { useEffect, useState } from 'react';
-import axios from 'axios';
-import ItemList from './components/ItemList';
+import { useState } from "react";
+import { Login } from "./pages/Login";
 
-const API_BASE = 'http://localhost:8080/api';
 
-function App() {
-  const [status, setStatus] = useState('Loading...');
+export default function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [showRegister, setShowRegister] = useState(false);
 
-  useEffect(() => {
-    axios
-      .get(`${API_BASE}/health`)
-      .then((res) => {
-        // giả sử backend trả { status: "OK" }
-        setStatus(res.data.status);
-      })
-      .catch((err) => {
-        console.error(err);
-        setStatus('Backend is unreachable');
-      });
-  }, []);
+  // Hiển thị trang đăng ký
+  if (!isLoggedIn && showRegister) {
+    return <Register onBackToLogin={() => setShowRegister(false)} />;
+  }
 
+  // Hiển thị trang đăng nhập nếu chưa đăng nhập
+  if (!isLoggedIn) {
+    return <Login onShowRegister={() => setShowRegister(true)} />;
+  }
+
+  // Hiển thị trang chủ sau khi đăng nhập
   return (
-    <div style={{ padding: '16px' }}>
-      <h1>Kindergarten Frontend</h1>
-      <p>Health status: {status}</p>
-
-      <h2>Items</h2>
-      <ItemList />
+    <div className="min-h-screen bg-gradient-to-b from-yellow-50 to-blue-50">
+      <Navbar />
+      <Hero />
+      <AboutUs />
+      <Programs />
+      <Activities />
+      <Contact />
     </div>
   );
 }
-
-export default App;
