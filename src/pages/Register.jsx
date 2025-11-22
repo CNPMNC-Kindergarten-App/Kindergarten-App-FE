@@ -456,7 +456,7 @@ export function Register({ onBackToLogin }) {
   );
 }
 
-/* ================== Button, Input, Select GỘP TRONG FILE ================== */
+/* ================== Button, Input, Select ================== */
 
 function Button({ variant = "default", className = "", children, ...props }) {
   const base =
