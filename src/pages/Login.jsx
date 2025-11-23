@@ -35,7 +35,9 @@ function Input({ className = "", ...props }) {
   );
 }
 
-export function Login({ onShowRegister }) {
+// thay lại khi gắn BE export function Login({ onShowRegister }) {
+// Dùng để test
+export function Login({ onShowRegister, onLoginSuccess }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -45,6 +47,8 @@ export function Login({ onShowRegister }) {
     e.preventDefault();
     console.log("Đăng nhập:", { email, password, userType });
     alert("Đăng nhập thành công 🎉");
+    if (onLoginSuccess) {
+      onLoginSuccess();}
   };
 
   return (

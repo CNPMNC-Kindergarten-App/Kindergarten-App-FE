@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";
-
-
+import Home from "./pages/home";
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -15,18 +14,14 @@ export default function App() {
 
   // Hiển thị trang đăng nhập nếu chưa đăng nhập
   if (!isLoggedIn) {
-    return <Login onShowRegister={() => setShowRegister(true)} />;
+    return (
+      <Login
+        onShowRegister={() => setShowRegister(true)}
+        onLoginSuccess={() => setIsLoggedIn(true)} // ⬅️ thêm dòng này
+      />
+    );
   }
 
-  // Hiển thị trang chủ sau khi đăng nhập
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-yellow-50 to-blue-50">
-      <Navbar />
-      <Hero />
-      <AboutUs />
-      <Programs />
-      <Activities />
-      <Contact />
-    </div>
-  );
+  // Đã "đăng nhập" → vào Home
+  return <Home />;
 }
