@@ -1,6 +1,7 @@
+// src/components/Footer.jsx
 import React from "react";
 import { MapPin, Phone, Mail } from "lucide-react";
-
+import { Link } from "react-router-dom";
 import logo from "../assets/logofooter.png";
 
 export function Footer() {
@@ -27,24 +28,24 @@ export function Footer() {
           <div className="md:col-span-3 space-y-4">
             <h3 className="text-white">Liên kết</h3>
             <nav className="space-y-2">
-              <a
-                href="#"
+              <Link
+                to="/"
                 className="block text-white/80 hover:text-white transition-colors"
               >
                 Trang chủ
-              </a>
+              </Link>
               <a
                 href="#"
                 className="block text-white/80 hover:text-white transition-colors"
               >
                 Thông tin
               </a>
-              <a
-                href="#"
+              <Link
+                to="/attendance"
                 className="block text-white/80 hover:text-white transition-colors"
               >
                 Điểm danh
-              </a>
+              </Link>
               <a
                 href="#"
                 className="block text-white/80 hover:text-white transition-colors"

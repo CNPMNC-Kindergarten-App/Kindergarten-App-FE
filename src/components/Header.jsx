@@ -1,7 +1,8 @@
+// src/components/Header.jsx
 import React from "react";
 import { Menu } from "lucide-react";
+import { Link } from "react-router-dom";
 import logo from "../assets/logoheader.png";
-
 
 export function Header() {
   return (
@@ -20,18 +21,21 @@ export function Header() {
           <div className="flex items-center justify-between">
             {/* Logo */}
             <div className="flex items-center gap-3">
-              <img src={logo} alt="EduContact" className="h-12 md:h-14" />
+              {/* Bấm logo về trang chủ */}
+              <Link to="/">
+                <img src={logo} alt="EduContact" className="h-12 md:h-14" />
+              </Link>
             </div>
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-8">
-              <a
-                href="#"
+              <Link
+                to="/"
                 className="text-gray-700 hover:text-teal-500 transition-colors"
                 style={{ fontWeight: 600 }}
               >
                 Trang chủ
-              </a>
+              </Link>
               <a
                 href="#"
                 className="text-gray-700 hover:text-teal-500 transition-colors"
@@ -39,13 +43,13 @@ export function Header() {
               >
                 Thông tin học sinh
               </a>
-              <a
-                href="#"
+              <Link
+                to="/attendance"
                 className="text-gray-700 hover:text-teal-500 transition-colors"
                 style={{ fontWeight: 600 }}
               >
                 Điểm danh
-              </a>
+              </Link>
               <a
                 href="#"
                 className="text-gray-700 hover:text-teal-500 transition-colors"
