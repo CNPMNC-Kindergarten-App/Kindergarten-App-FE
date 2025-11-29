@@ -1,4 +1,3 @@
-// src/components/Header.jsx
 import React from "react";
 import { Menu } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -19,9 +18,9 @@ export function Header() {
       <header className="bg-white shadow-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
+
             {/* Logo */}
             <div className="flex items-center gap-3">
-              {/* Bấm logo về trang chủ */}
               <Link to="/">
                 <img src={logo} alt="EduContact" className="h-12 md:h-14" />
               </Link>
@@ -36,6 +35,16 @@ export function Header() {
               >
                 Trang chủ
               </Link>
+
+              {/* ⭐ BẢNG TIN MỚI */}
+              <Link
+                to="/bangtin"
+                className="text-gray-700 hover:text-teal-500 transition-colors"
+                style={{ fontWeight: 600 }}
+              >
+                Bảng tin
+              </Link>
+
               <a
                 href="#"
                 className="text-gray-700 hover:text-teal-500 transition-colors"
@@ -43,6 +52,7 @@ export function Header() {
               >
                 Thông tin học sinh
               </a>
+
               <Link
                 to="/attendance"
                 className="text-gray-700 hover:text-teal-500 transition-colors"
@@ -50,6 +60,7 @@ export function Header() {
               >
                 Điểm danh
               </Link>
+
               <a
                 href="#"
                 className="text-gray-700 hover:text-teal-500 transition-colors"
@@ -57,6 +68,7 @@ export function Header() {
               >
                 Thực đơn
               </a>
+
               <a
                 href="#"
                 className="text-gray-700 hover:text-teal-500 transition-colors"

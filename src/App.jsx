@@ -1,16 +1,22 @@
 // src/App.jsx
 import React, { useState } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
+
 import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";
 import AttendancePage from "./pages/AttendancePage";
 import Home from "./pages/home";
 
+// ⚠️ Import trang bảng tin mới của bạn
+import BangTin from "./pages/BangTin";
+
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
 
-  // Trang đăng ký
+  // ==============================
+  // 1. TRANG ĐĂNG KÝ
+  // ==============================
   if (!isLoggedIn && showRegister) {
     return (
       <Register
@@ -19,23 +25,31 @@ export default function App() {
     );
   }
 
-  // Trang đăng nhập
+  // ==============================
+  // 2. TRANG ĐĂNG NHẬP
+  // ==============================
   if (!isLoggedIn) {
     return (
       <Login
         onShowRegister={() => setShowRegister(true)}
-        // Gọi prop này trong Login khi đăng nhập thành công
+        // Gọi khi đăng nhập thành công
         onLoginSuccess={() => setIsLoggedIn(true)}
       />
     );
   }
 
-  // Sau khi đăng nhập -> dùng router
+  // ==============================
+  // 3. SAU KHI ĐĂNG NHẬP → ROUTING APP
+  // ==============================
   return (
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/attendance" element={<AttendancePage />} />
-      {/* Nếu path lạ -> đẩy về trang chủ */}
+
+      {/* ⭐️ TRANG BẢNG TIN MỚI */}
+      <Route path="/bangtin" element={<BangTin />} />
+
+      {/* Path lạ → trả về Home */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
