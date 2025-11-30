@@ -9,6 +9,7 @@ import Home from "./pages/home";
 
 // ⚠️ Import trang bảng tin mới của bạn
 import BangTin from "./pages/BangTin";
+import StudentInformation from "./pages/StudentInformation";
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -48,6 +49,9 @@ export default function App() {
 
       {/* ⭐️ TRANG BẢNG TIN MỚI */}
       <Route path="/bangtin" element={<BangTin />} />
+
+      {/* ⭐️ TRANG THÔNG TIN HỌC SINH */}
+      <Route path="/StudentInformation" element={<StudentInformation />} />
 
       {/* Path lạ → trả về Home */}
       <Route path="*" element={<Navigate to="/" replace />} />

@@ -45,13 +45,13 @@ export function Header() {
                 Bảng tin
               </Link>
 
-              <a
-                href="#"
+              <Link
+                to="/StudentInformation"
                 className="text-gray-700 hover:text-teal-500 transition-colors"
                 style={{ fontWeight: 600 }}
               >
                 Thông tin học sinh
-              </a>
+              </Link>
 
               <Link
                 to="/attendance"
