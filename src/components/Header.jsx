@@ -30,7 +30,7 @@ export function Header() {
             <nav className="hidden md:flex items-center gap-8">
               <Link
                 to="/"
-                className="text-gray-700 hover:text-teal-500 transition-colors"
+                className="text-gray-700 hover:text-teal-500 hover:bg-gray-100 px-3 py-2 rounded-full transition-colors"
                 style={{ fontWeight: 600 }}
               >
                 Trang chủ
@@ -39,7 +39,7 @@ export function Header() {
               {/* ⭐ BẢNG TIN MỚI */}
               <Link
                 to="/bangtin"
-                className="text-gray-700 hover:text-teal-500 transition-colors"
+                className="text-gray-700 hover:text-teal-500 hover:bg-gray-100 px-3 py-2 rounded-full transition-colors"
                 style={{ fontWeight: 600 }}
               >
                 Bảng tin
@@ -47,7 +47,7 @@ export function Header() {
 
               <Link
                 to="/StudentInformation"
-                className="text-gray-700 hover:text-teal-500 transition-colors"
+                className="text-gray-700 hover:text-teal-500 hover:bg-gray-100 px-3 py-2 rounded-full transition-colors"
                 style={{ fontWeight: 600 }}
               >
                 Thông tin học sinh
@@ -55,23 +55,23 @@ export function Header() {
 
               <Link
                 to="/attendance"
-                className="text-gray-700 hover:text-teal-500 transition-colors"
+                className="text-gray-700 hover:text-teal-500 hover:bg-gray-100 px-3 py-2 rounded-full transition-colors"
                 style={{ fontWeight: 600 }}
               >
                 Điểm danh
               </Link>
 
-              <a
-                href="#"
-                className="text-gray-700 hover:text-teal-500 transition-colors"
+              <Link
+                to="/menu"
+                className="text-gray-700 hover:text-teal-500 hover:bg-gray-100 px-3 py-2 rounded-full transition-colors"
                 style={{ fontWeight: 600 }}
               >
                 Thực đơn
-              </a>
+              </Link>
 
               <a
                 href="#"
-                className="text-gray-700 hover:text-teal-500 transition-colors"
+                className="text-gray-700 hover:text-teal-500 hover:bg-gray-100 px-3 py-2 rounded-full transition-colors"
                 style={{ fontWeight: 600 }}
               >
                 Nộp đơn
@@ -79,12 +79,14 @@ export function Header() {
             </nav>
 
             {/* CTA Buttons */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3"> 
               <button
-                className="hidden md:block bg-teal-500 hover:bg-teal-600 text-white px-6 py-2.5 rounded-full transition-colors"
-                style={{ fontWeight: 700 }}
+                className="hidden md:block hover:bg-teal-600 text-black px-8 py-2.5 rounded-full transition-colors"
+                style={{ fontWeight: 700 , backgroundColor: 'orange'}}
               >
-                Đăng nhập/Đăng ký
+                Xin chào cô:
+                <br />
+                Trần Hà Linh
               </button>
               <button className="md:hidden p-2">
                 <Menu className="w-6 h-6 text-teal-500" />

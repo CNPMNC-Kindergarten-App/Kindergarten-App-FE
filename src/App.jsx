@@ -10,6 +10,7 @@ import Home from "./pages/home";
 // ⚠️ Import trang bảng tin mới của bạn
 import BangTin from "./pages/BangTin";
 import StudentInformation from "./pages/StudentInformation";
+import MenuPage from "./pages/MenuPage";
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -45,14 +46,10 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
-      <Route path="/attendance" element={<AttendancePage />} />
-
-      {/* ⭐️ TRANG BẢNG TIN MỚI */}
+      <Route path="/attendance" element={<AttendancePage />} /> 
       <Route path="/bangtin" element={<BangTin />} />
-
-      {/* ⭐️ TRANG THÔNG TIN HỌC SINH */}
       <Route path="/StudentInformation" element={<StudentInformation />} />
-
+            <Route path="/menu" element={<MenuPage />} />
       {/* Path lạ → trả về Home */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
