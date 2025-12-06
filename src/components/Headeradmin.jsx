@@ -38,11 +38,11 @@ export function Header() {
 
               {/* ⭐ BẢNG TIN MỚI */}
               <Link
-                to="/bangtin"
+                to="/bangtinadmin"
                 className="text-gray-700 hover:text-teal-500 hover:bg-gray-100 px-3 py-2 rounded-full transition-colors"
                 style={{ fontWeight: 600 }}
               >
-                Bảng tin
+                Quản lý Bảng tin
               </Link>
 
               <Link
@@ -54,7 +54,7 @@ export function Header() {
               </Link>
 
               <Link
-                to="/attendance"
+                to="/attendanceadmin"
                 className="text-gray-700 hover:text-teal-500 hover:bg-gray-100 px-3 py-2 rounded-full transition-colors"
                 style={{ fontWeight: 600 }}
               >
@@ -84,8 +84,7 @@ export function Header() {
                 className="hidden md:block hover:bg-teal-600 text-black px-8 py-2.5 rounded-full transition-colors"
                 style={{ fontWeight: 700 , backgroundColor: 'orange'}}
               >
-                Xin chào quý Phụ huynh
-                
+                Xin chào quý Thầy Cô
               </button>
               <button className="md:hidden p-2">
                 <Menu className="w-6 h-6 text-teal-500" />

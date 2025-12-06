@@ -44,12 +44,23 @@ export function Login({ onShowRegister, onLoginSuccess }) {
   const [userType, setUserType] = useState("parent"); // "parent" | "teacher"
 
   const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Đăng nhập:", { email, password, userType });
-    alert("Đăng nhập thành công 🎉");
-    if (onLoginSuccess) {
-      onLoginSuccess();}
+  e.preventDefault();
+
+  const userData = {
+    email,
+    role: userType, // "parent" hoặc "teacher"
   };
+
+  // ✅ LƯU ROLE TẠM THỜI (localStorage)
+  localStorage.setItem("user", JSON.stringify(userData));
+
+  alert(`Đăng nhập thành công với vai trò: ${userType === "parent" ? "Phụ huynh" : "Giáo viên"} 🎉`);
+
+  if (onLoginSuccess) {
+    onLoginSuccess(userData);
+  }
+};
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-200 via-purple-200 to-blue-200 flex items-center justify-center p-4 relative overflow-hidden">
