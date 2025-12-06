@@ -1,6 +1,7 @@
 // src/App.jsx
 import React, { useState, useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
+import { Toaster } from "sonner";
 
 import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";
@@ -12,6 +13,10 @@ import MenuPage from "./pages/MenuPage";
 
 import Homeadmin from "./pageadmin/homeadmin";
 import BangTinadmin from "./pageadmin/bangtinadmin";
+import Studentinfadmin from "./pageadmin/studentinfadmin";
+import StudentList from "./pageadmin/studentlist";
+import RegisterStudent from "./pageadmin/registerStudent";
+import ProfileAdmin from "./pageadmin/profileAdmin";
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -54,7 +59,9 @@ export default function App() {
   // 3. ROUTING SAU KHI ĐĂNG NHẬP
   // ==============================
  return (
-  <Routes>
+  <>
+    <Toaster position="top-right" />
+    <Routes>
     {/* ✅ HOME THEO ROLE */}
     <Route
       path="/"
@@ -67,6 +74,10 @@ export default function App() {
       <>
         <Route path="/bangtinadmin" element={<BangTinadmin />} />
         <Route path="/attendanceadmin" element={<BangTinadmin />} />
+        <Route path="/studentlist" element={<StudentList />} />
+        <Route path="/studentinfadmin" element={<Studentinfadmin />} />
+        <Route path="/registerstudent" element={<RegisterStudent />} />
+        <Route path="/profile" element={<ProfileAdmin />} />
       </>
     )}
 
@@ -86,6 +97,7 @@ export default function App() {
     {/* ❌ TRUY CẬP SAI → ĐÁ VỀ HOME */}
     <Route path="*" element={<Navigate to="/" replace />} />
   </Routes>
+  </>
 );
 
 }

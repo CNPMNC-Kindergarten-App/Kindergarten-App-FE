@@ -46,7 +46,7 @@ export function Header() {
               </Link>
 
               <Link
-                to="/StudentInformation"
+                to="/studentlist"
                 className="text-gray-700 hover:text-teal-500 hover:bg-gray-100 px-3 py-2 rounded-full transition-colors"
                 style={{ fontWeight: 600 }}
               >
@@ -80,12 +80,15 @@ export function Header() {
 
             {/* CTA Buttons */}
             <div className="flex items-center gap-3"> 
-              <button
-                className="hidden md:block hover:bg-teal-600 text-black px-8 py-2.5 rounded-full transition-colors"
+              <Link
+                to="/profile"
+                className="hidden md:block hover:bg-teal-600 text-black px-8 py-2.5 rounded-full transition-colors no-underline"
                 style={{ fontWeight: 700 , backgroundColor: 'orange'}}
               >
-                Xin chào quý Thầy Cô
-              </button>
+                Xin chào cô:
+                <br />
+                <span style={{ fontWeight: 700 }}>Trần Hà Linh</span>
+              </Link>
               <button className="md:hidden p-2">
                 <Menu className="w-6 h-6 text-teal-500" />
               </button>
