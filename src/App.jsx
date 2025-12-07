@@ -19,6 +19,7 @@ import RegisterStudent from "./pageadmin/registerStudent";
 import ProfileAdmin from "./pageadmin/profileAdmin";
 import AbsenceFormPage from "./pages/AbsenceFormPage";
 
+import Attendanceadmin from "./pageadmin/attendanceadmin";
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -75,11 +76,11 @@ export default function App() {
     {role === "teacher" && (
       <>
         <Route path="/bangtinadmin" element={<BangTinadmin />} />
-        <Route path="/attendanceadmin" element={<BangTinadmin />} />
         <Route path="/studentlist" element={<StudentList />} />
         <Route path="/studentinfadmin" element={<Studentinfadmin />} />
         <Route path="/registerstudent" element={<RegisterStudent />} />
         <Route path="/profile" element={<ProfileAdmin />} />
+        <Route path="/attendanceadmin" element={<Attendanceadmin />} />
       </>
     )}
 
