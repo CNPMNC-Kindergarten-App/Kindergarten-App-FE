@@ -5,7 +5,7 @@ import { Toaster } from "sonner";
 
 import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";
-import AttendancePage from "./pages/AttendancePage";
+import AttendancePage from "./pages/attendancepage";
 import Home from "./pages/home";
 import BangTin from "./pages/BangTin";
 import StudentInformation from "./pages/StudentInformation";
@@ -17,6 +17,8 @@ import Studentinfadmin from "./pageadmin/studentinfadmin";
 import StudentList from "./pageadmin/studentlist";
 import RegisterStudent from "./pageadmin/registerStudent";
 import ProfileAdmin from "./pageadmin/profileAdmin";
+import AbsenceFormPage from "./pages/AbsenceFormPage";
+
 import Attendanceadmin from "./pageadmin/attendanceadmin";
 
 export default function App() {
@@ -92,6 +94,7 @@ export default function App() {
           element={<StudentInformation />}
         />
         <Route path="/menu" element={<MenuPage />} />
+        <Route path="/absence" element={<AbsenceFormPage />} /> {/* mới */}
       </>
     )}
 

@@ -1,86 +1,154 @@
-import { useState } from 'react';
-import { X, Send } from 'lucide-react';
+// src/components/AbsenceRequestModal.jsx
+import React, { useEffect, useState } from "react";
+import { X, Calendar, AlertTriangle } from "lucide-react";
 
 export function AbsenceRequestModal({ record, onClose, onSubmit }) {
-  const [reason, setReason] = useState('');
+  const [startDate, setStartDate] = useState(record?.date || "");
+  const [endDate, setEndDate] = useState(record?.date || "");
+  const [reasonType, setReasonType] = useState("illness");
+  const [reasonDetail, setReasonDetail] = useState("");
+  const [note, setNote] = useState("");
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const day = date.getDate().toString().padStart(2, '0');
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
-  };
+  useEffect(() => {
+    if (record?.date) {
+      setStartDate(record.date);
+      setEndDate(record.date);
+    }
+  }, [record]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (reason.trim()) {
-      onSubmit(reason.trim());
-    }
+
+    if (!startDate || !endDate) return;
+
+    onSubmit({
+      startDate,
+      endDate,
+      reasonType,
+      reasonDetail,
+      note,
+    });
   };
 
   return (
-    <div className="fixed inset-0 bg-transparent backdrop-blur-md flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl shadow-xl max-w-md w-full">
+    <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/30">
+      <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4 overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h3 className="text-gray-900">Gửi đơn xin phép</h3>
+        <div className="flex items-center justify-between px-6 py-4 border-b bg-indigo-50">
+          <div className="flex items-center gap-2">
+            <Calendar className="w-5 h-5 text-indigo-700" />
+            <h2 className="font-semibold text-indigo-900">Báo nghỉ học</h2>
+          </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="p-1 rounded-full hover:bg-indigo-100"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4 text-gray-500" />
           </button>
         </div>
 
-        {/* Content */}
-        <form onSubmit={handleSubmit} className="p-6">
-          <div className="mb-4">
-            <div className="text-sm text-gray-600 mb-1">Ngày vắng học</div>
-            <div className="text-gray-900">{formatDate(record.date)}</div>
-          </div>
+        {/* Body */}
+        <form onSubmit={handleSubmit} className="px-6 py-5 space-y-5">
+          {/* Info line */}
+          {record && (
+            <div className="flex items-start gap-2 p-3 rounded-lg bg-indigo-50 text-sm text-indigo-800">
+              <AlertTriangle className="w-4 h-4 mt-0.5" />
+              <div>
+                <p>
+                  Ngày điểm danh được chọn: <strong>{record.date}</strong>
+                </p>
+                <p className="text-xs text-indigo-700">
+                  Có thể chọn khoảng ngày nghỉ dài hơn nếu cần.
+                </p>
+              </div>
+            </div>
+          )}
 
-          <div className="mb-6">
-            <label htmlFor="reason" className="block text-sm text-gray-700 mb-2">
-              Lý do nghỉ học <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              id="reason"
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              placeholder="Nhập lý do nghỉ học của con (ví dụ: ốm, đi khám bệnh, việc gia đình...)"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
-              rows={5}
-              required
-            />
-            <div className="text-sm text-gray-500 mt-1">
-              {reason.length}/500 ký tự
+          {/* Date range */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Ngày bắt đầu nghỉ
+              </label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Ngày kết thúc nghỉ
+              </label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400"
+              />
             </div>
           </div>
 
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-            <p className="text-sm text-blue-900">
-              <span className="font-medium">Lưu ý:</span> Đơn xin phép sẽ được gửi đến
-              giáo viên chủ nhiệm để xem xét và phê duyệt.
-            </p>
+          {/* Reason type */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Lý do nghỉ
+            </label>
+            <select
+              value={reasonType}
+              onChange={(e) => setReasonType(e.target.value)}
+              className="w-full border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400"
+            >
+              <option value="illness">Ốm / Sức khỏe</option>
+              <option value="family">Việc gia đình</option>
+              <option value="travel">Du lịch</option>
+              <option value="other">Khác</option>
+            </select>
           </div>
 
-          {/* Actions */}
-          <div className="flex gap-3">
+          {/* Detail */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Mô tả chi tiết
+            </label>
+            <textarea
+              rows={3}
+              value={reasonDetail}
+              onChange={(e) => setReasonDetail(e.target.value)}
+              placeholder="Ví dụ: Bé bị sốt, bác sĩ yêu cầu nghỉ 2 ngày..."
+              className="w-full border rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400"
+            />
+          </div>
+
+          {/* Extra note */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Ghi chú bổ sung (tuỳ chọn)
+            </label>
+            <input
+              type="text"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="Thông tin thêm cho giáo viên (nếu có)"
+              className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400"
+            />
+          </div>
+
+          {/* Footer buttons */}
+          <div className="flex items-center justify-end gap-3 pt-2 border-t mt-2">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              className="px-4 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50"
             >
               Hủy
             </button>
             <button
               type="submit"
-              disabled={!reason.trim()}
-              className="flex-1 px-4 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="px-5 py-2 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700"
             >
-              <Send className="w-4 h-4" />
-              <span>Gửi đơn</span>
+              Gửi đơn xin phép
             </button>
           </div>
         </form>

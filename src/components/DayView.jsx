@@ -1,33 +1,41 @@
-import { CheckCircle, XCircle, Clock, AlertTriangle, Send } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, AlertTriangle, Send } from "lucide-react";
 
 const statusConfig = {
   present: {
-    label: 'Có mặt',
+    label: "Có mặt",
     icon: CheckCircle,
-    bgColor: 'bg-green-50',
-    textColor: 'text-green-700',
-    borderColor: 'border-green-200',
+    bgColor: "bg-green-50",
+    textColor: "text-green-700",
+    borderColor: "border-green-200",
   },
-  'absent-excused': {
-    label: 'Vắng có phép',
+  "absent-excused": {
+    label: "Vắng có phép",
     icon: AlertTriangle,
-    bgColor: 'bg-blue-50',
-    textColor: 'text-blue-700',
-    borderColor: 'border-blue-200',
+    bgColor: "bg-blue-50",
+    textColor: "text-blue-700",
+    borderColor: "border-blue-200",
   },
-  'absent-unexcused': {
-    label: 'Vắng không phép',
+  "absent-unexcused": {
+    label: "Vắng không phép",
     icon: XCircle,
-    bgColor: 'bg-red-50',
-    textColor: 'text-red-700',
-    borderColor: 'border-red-200',
+    bgColor: "bg-red-50",
+    textColor: "text-red-700",
+    borderColor: "border-red-200",
   },
   late: {
-    label: 'Đi trễ',
+    label: "Đi trễ",
     icon: Clock,
-    bgColor: 'bg-orange-50',
-    textColor: 'text-orange-700',
-    borderColor: 'border-orange-200',
+    bgColor: "bg-orange-50",
+    textColor: "text-orange-700",
+    borderColor: "border-orange-200",
+  },
+  // ✅ trạng thái mới: đã gửi đơn, đang chờ duyệt
+  "absence-pending": {
+    label: "Đã gửi đơn, chờ duyệt",
+    icon: AlertTriangle,
+    bgColor: "bg-yellow-50",
+    textColor: "text-yellow-700",
+    borderColor: "border-yellow-200",
   },
 };
 
@@ -39,17 +47,17 @@ export function DayView({ data, onRequestAbsence }) {
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     const dayNames = [
-      'Chủ nhật',
-      'Thứ hai',
-      'Thứ ba',
-      'Thứ tư',
-      'Thứ năm',
-      'Thứ sáu',
-      'Thứ bảy',
+      "Chủ nhật",
+      "Thứ hai",
+      "Thứ ba",
+      "Thứ tư",
+      "Thứ năm",
+      "Thứ sáu",
+      "Thứ bảy",
     ];
     const dayName = dayNames[date.getDay()];
-    const day = date.getDate().toString().padStart(2, '0');
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, "0");
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
     const year = date.getFullYear();
     return `${dayName}, ${day}/${month}/${year}`;
   };
@@ -59,8 +67,9 @@ export function DayView({ data, onRequestAbsence }) {
       <h3 className="text-indigo-900 mb-4">Chi tiết điểm danh từng ngày</h3>
       <div className="space-y-3">
         {sortedData.map((record) => {
-          const config = statusConfig[record.status];
-          const Icon = config.icon;
+          // fallback nếu status không có trong bảng
+          const config = statusConfig[record.status] || statusConfig.present;
+          const Icon = config.icon || CheckCircle;
 
           return (
             <div
@@ -82,7 +91,8 @@ export function DayView({ data, onRequestAbsence }) {
                     </div>
                   )}
                 </div>
-                {record.status === 'absent-unexcused' && (
+
+                {record.status === "absent-unexcused" && (
                   <button
                     onClick={() => onRequestAbsence(record.id)}
                     className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg border border-indigo-200 text-indigo-700 hover:bg-indigo-50 transition-colors"
