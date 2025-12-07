@@ -1,5 +1,5 @@
 // src/pages/AttendancePage.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Calendar, TrendingUp, AlertCircle } from "lucide-react";
 import { AttendanceStats } from "../components/AttendanceStats";
 import { DayView } from "../components/DayView";
@@ -10,6 +10,13 @@ import { Header } from "../components/Header";
 import { Hero } from "../components/Hero";
 import { Features } from "../components/Features";
 import { Footer } from "../components/Footer";
+import {
+  initAbsenceStore,
+  getAbsencesByChildId,
+  createAbsenceRequest,
+} from "../mocks/absenceMock";
+import { toast } from "sonner";
+
 
 // Mock data
 const mockAttendanceData = [
@@ -41,13 +48,72 @@ const mockAttendanceData = [
   { id: "26", date: "2025-10-30", status: "present" },
   { id: "27", date: "2025-10-29", status: "present" },
   { id: "28", date: "2025-10-28", status: "absent-unexcused" },
+  { id: "29", date: "2025-12-06", status: "absent-unexcused" },
+  { id: "30", date: "2025-12-07", status: "absent-unexcused" },
+  { id: "31", date: "2025-12-05", status: "absent-unexcused" },
+  { id: "32", date: "2025-12-04", status: "absent-unexcused" },
+  { id: "33", date: "2025-12-03", status: "absent-unexcused" },
 ];
+
+const MOCK_CHILD_ID = 101;
 
 export default function AttendancePage() {
   const [viewMode, setViewMode] = useState("day");
   const [attendanceData, setAttendanceData] = useState(mockAttendanceData);
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    initAbsenceStore();
+    const absences = getAbsencesByChildId(MOCK_CHILD_ID);
+
+    if (!absences.length) return;
+
+    setAttendanceData((prev) =>
+      prev.map((record) => {
+        const absenceForDay = absences.find((a) => {
+          const d = record.date; // YYYY-MM-DD
+          return d >= a.startDate && d <= a.endDate;
+        });
+
+        if (!absenceForDay) {
+          return record;
+        }
+
+        if (absenceForDay.status === "APPROVED") {
+          return {
+            ...record,
+            status: "absent-excused",
+            note: absenceForDay.reasonDetail || record.note,
+          };
+        }
+
+        if (absenceForDay.status === "PENDING") {
+          return {
+            ...record,
+            status: "absence-pending",
+            note:
+              absenceForDay.reasonDetail ||
+              record.note ||
+              "Đơn xin nghỉ đang chờ giáo viên xác nhận.",
+          };
+        }
+
+        if (absenceForDay.status === "REJECTED") {
+          return {
+            ...record,
+            status: "absent-unexcused",
+            note:
+              absenceForDay.reasonDetail ||
+              record.note ||
+              "Đơn xin nghỉ đã bị từ chối.",
+          };
+        }
+
+        return record;
+      })
+    );
+  }, []);
 
   const handleRequestAbsence = (recordId) => {
     const record = attendanceData.find((r) => r.id === recordId);
@@ -57,19 +123,53 @@ export default function AttendancePage() {
     }
   };
 
-  const handleSubmitRequest = (reason) => {
-    if (selectedRecord) {
-      setAttendanceData((prev) =>
-        prev.map((record) =>
-          record.id === selectedRecord.id
-            ? { ...record, status: "absent-excused", note: reason }
-            : record
-        )
-      );
-    }
-    setIsModalOpen(false);
-    setSelectedRecord(null);
-  };
+  const handleSubmitRequest = ({
+  startDate,
+  endDate,
+  reasonType,
+  reasonDetail,
+  note,
+}) => {
+  if (!selectedRecord) return;
+
+  // Ghi đơn nghỉ vào mock store
+  createAbsenceRequest({
+    childId: MOCK_CHILD_ID,
+    childName: "Nguyễn Văn An",
+    className: "10A1",
+    startDate,
+    endDate,
+    reasonType,
+    reasonDetail,
+    note,
+    attachmentName: null,
+  });
+
+  // Cập nhật trạng thái bản ghi đã chọn trên UI
+  setAttendanceData((prev) =>
+    prev.map((record) =>
+      record.id === selectedRecord.id
+        ? {
+            ...record,
+            status: "absence-pending",
+            note:
+              reasonDetail ||
+              note ||
+              record.note ||
+              "Đơn xin nghỉ đang chờ giáo viên xác nhận.",
+          }
+        : record
+    )
+  );
+
+  toast.success(
+    "Đã gửi đơn xin nghỉ cho ngày được chọn. Đơn đang chờ giáo viên xác nhận."
+  );
+
+  setIsModalOpen(false);
+  setSelectedRecord(null);
+};
+
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-yellow-50 to-blue-50">
