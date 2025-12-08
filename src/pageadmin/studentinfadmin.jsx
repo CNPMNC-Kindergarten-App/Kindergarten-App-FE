@@ -10,7 +10,6 @@ export default function StudentInformation() {
   const [searchParams] = useSearchParams();
   const studentId = searchParams.get("id");
   
-  const [activeTab, setActiveTab] = useState("basic"); // 'basic' | 'health' | 'class' | 'notes'
   const [isLoading, setIsLoading] = useState(true);
   const [studentData, setStudentData] = useState(null);
 
@@ -175,58 +174,7 @@ export default function StudentInformation() {
             </p>
           </div>
 
-          {/* Tab Navigation */}
-          <div className="bg-white rounded-xl p-4 border border-blue-200">
-            <div className="flex gap-2 flex-wrap">
-              <button
-                onClick={() => setActiveTab("basic")}
-                className={`flex items-center gap-2 px-6 py-3 rounded-lg transition-colors font-medium ${
-                  activeTab === "basic"
-                    ? "bg-teal-500 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
-              >
-                <User className="w-5 h-5" />
-                Thông tin cơ bản
-              </button>
-              <button
-                onClick={() => setActiveTab("health")}
-                className={`flex items-center gap-2 px-6 py-3 rounded-lg transition-colors font-medium ${
-                  activeTab === "health"
-                    ? "bg-teal-500 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
-              >
-                <Heart className="w-5 h-5" />
-                Thông tin sức khỏe
-              </button>
-              <button
-                onClick={() => setActiveTab("class")}
-                className={`flex items-center gap-2 px-6 py-3 rounded-lg transition-colors font-medium ${
-                  activeTab === "class"
-                    ? "bg-teal-500 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
-              >
-                <GraduationCap className="w-5 h-5" />
-                Lớp & Lịch học
-              </button>
-              <button
-                onClick={() => setActiveTab("notes")}
-                className={`flex items-center gap-2 px-6 py-3 rounded-lg transition-colors font-medium ${
-                  activeTab === "notes"
-                    ? "bg-teal-500 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
-              >
-                <Smile className="w-5 h-5" />
-                Ghi chú thêm
-              </button>
-            </div>
-          </div>
-
           {/* Card 1: Thông tin cơ bản */}
-          {activeTab === "basic" && (
             <div className="bg-white rounded-xl p-6 border border-blue-200">
               <h2 className="text-3xl mb-6 underline" style={{ color: '#19C1B6', fontWeight: 900 }}>
                 Thông tin cơ bản:
@@ -295,10 +243,8 @@ export default function StudentInformation() {
                 </div>
               </div>
             </div>
-          )}
 
           {/* Card 2: Thông tin sức khỏe */}
-          {activeTab === "health" && (
             <div className="bg-white rounded-xl p-6 border border-blue-200">
               <h2 className="text-3xl mb-6 underline" style={{ color: '#19C1B6', fontWeight: 900 }}>
                 Thông tin sức khỏe:
@@ -348,10 +294,8 @@ export default function StudentInformation() {
                 </div>
               </div>
             </div>
-          )}
 
           {/* Card 3: Thông tin lớp & lịch học */}
-          {activeTab === "class" && (
             <div className="bg-white rounded-xl p-6 border border-blue-200">
               <h2 className="text-3xl mb-6 underline" style={{ color: '#19C1B6', fontWeight: 900 }}>
                 Thông tin lớp & lịch học:
@@ -383,7 +327,7 @@ export default function StudentInformation() {
 
                 {/* Lịch học (có thể thêm sau) */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-cen111  ter gap-2">
                     <Calendar className="w-4 h-4" />
                     Lịch học trong tuần:
                   </label>
@@ -394,10 +338,8 @@ export default function StudentInformation() {
                 </div>
               </div>
             </div>
-          )}
 
           {/* Card 4: Ghi chú thêm */}
-          {activeTab === "notes" && (
             <div className="bg-white rounded-xl p-6 border border-blue-200">
               <h2 className="text-3xl mb-6 underline" style={{ color: '#19C1B6', fontWeight: 900 }}>
                 Ghi chú thêm:
@@ -409,12 +351,9 @@ export default function StudentInformation() {
                     <Utensils className="w-4 h-4" />
                     Thói quen ăn uống:
                   </label>
-                  <p className="text-sm text-gray-600 mb-3">
-                    {studentData.eatingHabits || "Chưa có thông tin"}
-                  </p>
-                  <div className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 min-h-[120px] whitespace-pre-wrap">
-                    {studentData.eatingHabits ? "" : "Chưa có ghi chú chi tiết về thói quen ăn uống"}
-                  </div>
+                <div className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 min-h-[120px] whitespace-pre-wrap">
+                  {studentData.eatingHabits || "Chưa có ghi chú chi tiết về thói quen ăn uống"}
+                </div>
                 </div>
 
                 {/* Giấc ngủ */}
@@ -423,12 +362,9 @@ export default function StudentInformation() {
                     <Moon className="w-4 h-4" />
                     Giấc ngủ:
                   </label>
-                  <p className="text-sm text-gray-600 mb-3">
-                    {studentData.sleepHabits || "Chưa có thông tin"}
-                  </p>
-                  <div className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 min-h-[120px] whitespace-pre-wrap">
-                    {studentData.sleepHabits ? "" : "Chưa có ghi chú chi tiết về giấc ngủ"}
-                  </div>
+                <div className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 min-h-[120px] whitespace-pre-wrap">
+                  {studentData.sleepHabits || "Chưa có ghi chú chi tiết về giấc ngủ"}
+                </div>
                 </div>
 
                 {/* Tính cách của trẻ */}
@@ -437,16 +373,12 @@ export default function StudentInformation() {
                     <Smile className="w-4 h-4" />
                     Tính cách của trẻ:
                   </label>
-                  <p className="text-sm text-gray-600 mb-3">
-                    {studentData.personality || "Chưa có thông tin"}
-                  </p>
-                  <div className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 min-h-[120px] whitespace-pre-wrap">
-                    {studentData.personality ? "" : "Chưa có ghi chú chi tiết về tính cách"}
-                  </div>
+                <div className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 min-h-[120px] whitespace-pre-wrap">
+                  {studentData.personality || "Chưa có ghi chú chi tiết về tính cách"}
+                </div>
                 </div>
               </div>
             </div>
-          )}
         </div>
       </div>
 
