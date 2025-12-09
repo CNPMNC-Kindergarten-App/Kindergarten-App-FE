@@ -17,6 +17,10 @@ import StudentList from "./pageadmin/studentlist";
 import RegisterStudent from "./pageadmin/registerStudent";
 import ProfileAdmin from "./pageadmin/profileAdmin";
 import Attendanceadmin from "./pageadmin/attendanceadmin";
+import MenuPageAdmin from "./pageadmin/MenuPageAdmin"
+
+import { StudentSelection } from "./components/StudentSelection.jsx";
+import { useStudent } from "./contexts/StudentContext.jsx"; // ✅ DÙNG CONTEXT
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -91,18 +95,18 @@ export default function App() {
           element={role === "teacher" ? <Homeadmin /> : <Home />}
         />
 
-    {/* ================= TEACHER ================= */}
-    {/* ❗ Teacher CHỈ được phép ở Homeadmin */}
-    {role === "teacher" && (
-      <>
-        <Route path="/bangtinadmin" element={<BangTinadmin />} />
-        <Route path="/studentlist" element={<StudentList />} />
-        <Route path="/studentinfadmin" element={<Studentinfadmin />} />
-        <Route path="/registerstudent" element={<RegisterStudent />} />
-        <Route path="/profile" element={<ProfileAdmin />} />
-        <Route path="/attendanceadmin" element={<Attendanceadmin />} />
-      </>
-    )}
+        {/* ================= TEACHER ================= */}
+        {role === "teacher" && (
+          <>
+            <Route path="/bangtinadmin" element={<BangTinadmin />} />
+            <Route path="/studentlist" element={<StudentList />} />
+            <Route path="/studentinfadmin" element={<Studentinfadmin />} />
+            <Route path="/registerstudent" element={<RegisterStudent />} />
+            <Route path="/profile" element={<ProfileAdmin />} />
+            <Route path="/attendanceadmin" element={<Attendanceadmin />} />
+            <Route path="/MenuPageAdmin" element={<MenuPageAdmin/>} />
+          </>
+        )}
 
         {/* ================= PHỤ HUYNH ================= */}
         {role === "parent" && (
