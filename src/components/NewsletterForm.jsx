@@ -6,40 +6,80 @@ import { toast } from "sonner";
 export function NewsletterForm({ formData, setFormData }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // ✅ ÉP featured THÀNH STRING "true" | "false"
   const handleInputChange = (e) => {
-    const { name, value, type } = e.target;
-    const checked = e.target.checked;
+    const { name, value, type, checked } = e.target;
 
     setFormData({
       ...formData,
-      [name]: type === "checkbox" ? checked : value,
+      [name]:
+        type === "checkbox"
+          ? checked
+            ? "true"
+            : "false" // ✅ STRING
+          : String(value), // ✅ TẤT CẢ FIELD KHÁC LÀ STRING
     });
   };
 
-  const handleContentChange = (content) => {
+  // ✅ ĐỔI content → html (STRING)
+  const handleContentChange = (html) => {
     setFormData({
       ...formData,
-      content,
+      html: String(html),
     });
+  };
+
+  const handleUploadImage = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const data = new FormData();
+    data.append("file", file);
+    data.append(
+      "upload_preset",
+      import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET
+    );
+
+    try {
+      const res = await fetch(
+        `https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload`,
+        {
+          method: "POST",
+          body: data,
+        }
+      );
+
+      const result = await res.json();
+
+      setFormData({
+        ...formData,
+        image: String(result.secure_url), // ✅ STRING
+      });
+
+      toast.success("Upload ảnh thành công!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Upload ảnh thất bại");
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validation
-    if (!formData.title.trim()) {
+    // ✅ VALIDATION THEO FIELD STRING
+    if (!formData.title?.trim()) {
       toast.error("Vui lòng nhập tiêu đề bản tin");
       return;
     }
-    if (!formData.excerpt.trim()) {
+    if (!formData.excerpt?.trim()) {
       toast.error("Vui lòng nhập mô tả ngắn");
       return;
     }
-    if (!formData.author.trim()) {
+    if (!formData.author?.trim()) {
       toast.error("Vui lòng nhập tên tác giả");
       return;
     }
-    if (!formData.content.trim()) {
+    if (!formData.html?.trim()) {
       toast.error("Vui lòng nhập nội dung bản tin");
       return;
     }
@@ -47,27 +87,34 @@ export function NewsletterForm({ formData, setFormData }) {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch("http://localhost:8080/feed/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/feed/create`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData), // ✅ TOÀN BỘ STRING
+        }
+      );
 
       if (response.ok) {
         toast.success("Tạo bản tin thành công!");
-        // Reset form
+
+        // ✅ RESET FORM TOÀN BỘ STRING
         setFormData({
           title: "",
           excerpt: "",
-          category: "Thông báo",
+          category: "ANNOUNCEMENT",
           date: new Date().toISOString().split("T")[0],
           image: "",
           author: "",
-          featured: false,
-          content: "",
+          featured: "false",
+          html: "",
         });
+        setTimeout(() => {
+    window.location.reload();
+  }, 3000);
       } else {
         const error = await response.text();
         toast.error(`Lỗi: ${error || "Không thể tạo bản tin"}`);
@@ -96,7 +143,6 @@ export function NewsletterForm({ formData, setFormData }) {
           value={formData.title}
           onChange={handleInputChange}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          placeholder="Ví dụ: Thông báo lịch thi học kỳ 1 năm học 2024-2025"
           required
         />
       </div>
@@ -112,8 +158,7 @@ export function NewsletterForm({ formData, setFormData }) {
           value={formData.excerpt}
           onChange={handleInputChange}
           rows={3}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-          placeholder="Nhập mô tả ngắn về bản tin..."
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg resize-none"
           required
         />
       </div>
@@ -129,13 +174,13 @@ export function NewsletterForm({ formData, setFormData }) {
             name="category"
             value={formData.category}
             onChange={handleInputChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
           >
-            <option value="Thông báo">Thông báo</option>
-            <option value="Sự kiện">Sự kiện</option>
-            <option value="Học tập">Học tập</option>
-            <option value="Hoạt động">Hoạt động</option>
-            <option value="Tin tức">Tin tức</option>
+            <option value="ANNOUNCEMENT">Thông báo</option>
+            <option value="EVENT">Sự kiện</option>
+            <option value="ACTIVITY">Hoạt động</option>
+            <option value="ACADEMIC">Học thuật</option>
+            <option value="ENROLLMENT">Tuyển sinh</option>
           </select>
         </div>
 
@@ -149,26 +194,29 @@ export function NewsletterForm({ formData, setFormData }) {
             name="date"
             value={formData.date}
             onChange={handleInputChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
           />
         </div>
       </div>
 
-      {/* Image URL and Author */}
+      {/* Image and Author */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label htmlFor="image" className="block text-gray-700 mb-2">
-            URL hình ảnh
-          </label>
+          <label className="block text-gray-700 mb-2">Hình ảnh</label>
           <input
-            type="url"
-            id="image"
-            name="image"
-            value={formData.image}
-            onChange={handleInputChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="https://example.com/image.jpg"
+            type="file"
+            accept="image/*"
+            onChange={handleUploadImage}
+            className="w-full"
           />
+
+          {formData.image && (
+            <img
+              src={formData.image}
+              className="mt-3 w-40 rounded border"
+              alt="preview"
+            />
+          )}
         </div>
 
         <div>
@@ -181,8 +229,7 @@ export function NewsletterForm({ formData, setFormData }) {
             name="author"
             value={formData.author}
             onChange={handleInputChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="Ví dụ: Ban Giám Hiệu"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
             required
           />
         </div>
@@ -194,9 +241,9 @@ export function NewsletterForm({ formData, setFormData }) {
           type="checkbox"
           id="featured"
           name="featured"
-          checked={formData.featured}
+          checked={formData.featured === "true"}
           onChange={handleInputChange}
-          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+          className="w-4 h-4"
         />
         <label htmlFor="featured" className="text-gray-700">
           Đánh dấu là bản tin nổi bật
@@ -208,7 +255,7 @@ export function NewsletterForm({ formData, setFormData }) {
         <label className="block text-gray-700 mb-2">
           Nội dung chi tiết <span className="text-red-500">*</span>
         </label>
-        <RichTextEditor value={formData.content} onChange={handleContentChange} />
+        <RichTextEditor value={formData.html} onChange={handleContentChange} />
       </div>
 
       {/* Submit Button */}
@@ -216,7 +263,7 @@ export function NewsletterForm({ formData, setFormData }) {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
         >
           {isSubmitting ? (
             <>

@@ -1,4 +1,3 @@
-// src/App.jsx
 import React, { useState, useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "sonner";
@@ -18,20 +17,26 @@ import StudentList from "./pageadmin/studentlist";
 import RegisterStudent from "./pageadmin/registerStudent";
 import ProfileAdmin from "./pageadmin/profileAdmin";
 import Attendanceadmin from "./pageadmin/attendanceadmin";
-import MenuPageAdmin from "./pageadmin/MenuPageAdmin"
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
   const [role, setRole] = useState(null);
 
-  // ✅ TỰ ĐỘNG LẤY ROLE KHI REFRESH
+  const { selectedStudent, setSelectedStudent } = useStudent();
+
+  // ✅ LẤY USER KHI REFRESH
   useEffect(() => {
     const user = localStorage.getItem("user");
     if (user) {
       const parsed = JSON.parse(user);
       setIsLoggedIn(true);
       setRole(parsed.role);
+    }
+
+    const savedStudent = localStorage.getItem("selectedStudent");
+    if (savedStudent) {
+      setSelectedStudent(JSON.parse(savedStudent));
     }
   }, []);
 
@@ -57,18 +62,34 @@ export default function App() {
     );
   }
 
+  // ✅ LẤY parent_id
+  const user = JSON.parse(localStorage.getItem("user"));
+  const parentId = user?.parent_id || 1; // test tạm
+
+  // ==============================
+  // 🚨 ÉP PHỤ HUYNH PHẢI CHỌN HỌC SINH
+  // ==============================
+  if (role === "parent" && !selectedStudent) {
+    return (
+      <StudentSelection
+        parentId={parentId}
+        onSelectStudent={() => {}}
+      />
+    );
+  }
+
   // ==============================
   // 3. ROUTING SAU KHI ĐĂNG NHẬP
   // ==============================
- return (
-  <>
-    <Toaster position="top-right" />
-    <Routes>
-    {/* ✅ HOME THEO ROLE */}
-    <Route
-      path="/"
-      element={role === "teacher" ? <Homeadmin /> : <Home />}
-    />
+  return (
+    <>
+      <Toaster position="top-right" />
+      <Routes>
+        {/* ✅ HOME THEO ROLE */}
+        <Route
+          path="/"
+          element={role === "teacher" ? <Homeadmin /> : <Home />}
+        />
 
     {/* ================= TEACHER ================= */}
     {/* ❗ Teacher CHỈ được phép ở Homeadmin */}
@@ -80,28 +101,23 @@ export default function App() {
         <Route path="/registerstudent" element={<RegisterStudent />} />
         <Route path="/profile" element={<ProfileAdmin />} />
         <Route path="/attendanceadmin" element={<Attendanceadmin />} />
-        <Route path="/MenuPageAdmin" element={<MenuPageAdmin />} />
-
       </>
     )}
 
-    {/* ================= PHỤ HUYNH (GIỮ NGUYÊN ROUTE CỦA BẠN) ================= */}
-    {role === "parent" && (
-      <>
-        <Route path="/attendance" element={<AttendancePage />} />
-        <Route path="/bangtin" element={<BangTin />} />
-        <Route
-          path="/StudentInformation"
-          element={<StudentInformation />}
-        />
-        <Route path="/menu" element={<MenuPage />} />
-      </>
-    )}
+        {/* ================= PHỤ HUYNH ================= */}
+        {role === "parent" && (
+          <>
+            <Route path="/attendance" element={<AttendancePage />} />
+            <Route path="/bangtin" element={<BangTin />} />
+            <Route path="/StudentInformation" element={<StudentInformation />} />
+            <Route path="/menu" element={<MenuPage />} />
+          </>
+        )}
 
-    {/* ❌ TRUY CẬP SAI → ĐÁ VỀ HOME */}
-    <Route path="*" element={<Navigate to="/" replace />} />
-  </Routes>
-  </>
-);
-
+        {/* ❌ TRUY CẬP SAI → HOME */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </>
+  );
 }
+ 

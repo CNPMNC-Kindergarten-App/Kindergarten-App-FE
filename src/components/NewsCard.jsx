@@ -2,13 +2,26 @@ import { Calendar, User, ArrowRight } from "lucide-react";
 
 export function NewsCard({ news, onClick }) {
   const categoryColors = {
-  'thông báo': 'bg-red-100 text-red-700',
-  'sự kiện': 'bg-purple-100 text-purple-700',
-  'hoạt động': 'bg-green-100 text-green-700',
-  'học thuật': 'bg-blue-100 text-blue-700',
-  'tuyển sinh': 'bg-orange-100 text-orange-700',
-};
+    "thông báo": "bg-red-100 text-red-700",
+    "sự kiện": "bg-purple-100 text-purple-700",
+    "hoạt động": "bg-green-100 text-green-700",
+    "học thuật": "bg-blue-100 text-blue-700",
+    "tuyển sinh": "bg-orange-100 text-orange-700",
+  };
 
+  // ✅ MAP ENUM → TIẾNG VIỆT
+  const categoryEnumToVN = {
+    ANNOUNCEMENT: "thông báo",
+    EVENT: "sự kiện",
+    ACTIVITY: "hoạt động",
+    ACADEMIC: "học thuật",
+    ENROLLMENT: "tuyển sinh",
+  };
+
+  // ✅ CATEGORY AN TOÀN (XỬ LÝ CẢ ENUM + TIẾNG VIỆT)
+  const safeCategory =
+    categoryEnumToVN[news.category] ||
+    news.category?.normalize("NFC").trim().toLowerCase();
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -26,7 +39,7 @@ export function NewsCard({ news, onClick }) {
     >
       <div className="relative h-48 overflow-hidden">
         <img
-          src={news.image}
+          src={news.image || "/no-image.png"}
           alt={news.title}
           className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
         />
@@ -34,11 +47,11 @@ export function NewsCard({ news, onClick }) {
         <div className="absolute top-4 left-4">
           <span
             className={`px-3 py-1 rounded-full text-sm font-semibold ${
-              categoryColors[news.category.normalize("NFC").trim().toLowerCase()]
- || "bg-gray-200 text-gray-700"
+              categoryColors[safeCategory] ||
+              "bg-gray-200 text-gray-700"
             }`}
           >
-            {news.category}
+            {safeCategory}
           </span>
         </div>
       </div>
@@ -49,7 +62,7 @@ export function NewsCard({ news, onClick }) {
         </h3>
 
         <p className="text-gray-600 mb-4 line-clamp-3 text-sm">
-          {news.excerpt}
+          {news.excerpt || "Đang cập nhật nội dung..."}
         </p>
 
         <div className="flex items-center justify-between text-sm text-gray-500 mb-4">

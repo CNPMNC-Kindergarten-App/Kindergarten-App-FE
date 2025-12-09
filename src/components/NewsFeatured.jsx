@@ -1,13 +1,21 @@
 import { Calendar, User, Star } from "lucide-react";
 
 const categoryColors = {
-  'thông báo': 'bg-red-100 text-red-700',
-  'sự kiện': 'bg-purple-100 text-purple-700',
-  'hoạt động': 'bg-green-100 text-green-700',
-  'học thuật': 'bg-blue-100 text-blue-700',
-  'tuyển sinh': 'bg-orange-100 text-orange-700',
+  "thông báo": "bg-red-100 text-red-700",
+  "sự kiện": "bg-purple-100 text-purple-700",
+  "hoạt động": "bg-green-100 text-green-700",
+  "học thuật": "bg-blue-100 text-blue-700",
+  "tuyển sinh": "bg-orange-100 text-orange-700",
 };
 
+/* ✅ MAP ENUM → TIẾNG VIỆT (CHỈ FIX API) */
+const categoryEnumMap = {
+  ANNOUNCEMENT: "thông báo",
+  EVENT: "sự kiện",
+  ACTIVITY: "hoạt động",
+  ACADEMIC: "học thuật",
+  ENROLLMENT: "tuyển sinh",
+};
 
 export function NewsFeatured({ news, onClick }) {
   const formatDate = (d) =>
@@ -17,16 +25,20 @@ export function NewsFeatured({ news, onClick }) {
       year: "numeric",
     });
 
+  /* ✅ FIX CATEGORY TỪ ENUM */
+  const safeCategory =
+    categoryEnumMap[news.category] ||
+    news.category?.normalize("NFC").trim().toLowerCase();
+
   return (
     <article
       className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition cursor-pointer"
       onClick={onClick}
     >
       <div className="relative h-64">
-
         {/* ---- DÙNG IMG THUẦN ---- */}
         <img
-          src={news.image}
+          src={news.image || "/no-image.png"}
           alt={news.title}
           className="w-full h-full object-cover"
         />
@@ -35,11 +47,11 @@ export function NewsFeatured({ news, onClick }) {
         <div className="absolute top-4 left-4 flex items-center gap-2">
           <span
             className={`px-3 py-1 rounded-full text-sm ${
-              categoryColors[news.category.normalize("NFC").trim().toLowerCase()]
- || "bg-gray-100 text-gray-700"
+              categoryColors[safeCategory] ||
+              "bg-gray-100 text-gray-700"
             }`}
           >
-            {news.category}
+            {safeCategory}
           </span>
 
           <span className="bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full flex items-center gap-1 text-sm">
@@ -54,9 +66,13 @@ export function NewsFeatured({ news, onClick }) {
 
       {/* TEXT CONTENT */}
       <div className="p-6">
-        <h3 className="text-gray-900 mb-3 hover:text-blue-600">{news.title}</h3>
+        <h3 className="text-gray-900 mb-3 hover:text-blue-600">
+          {news.title}
+        </h3>
 
-        <p className="text-gray-600 mb-4">{news.excerpt}</p>
+        <p className="text-gray-600 mb-4">
+          {news.excerpt || "Đang cập nhật nội dung..."}
+        </p>
 
         <div className="flex items-center justify-between text-gray-500 text-sm">
           <span className="flex items-center gap-1">

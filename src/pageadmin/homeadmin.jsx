@@ -9,7 +9,6 @@ export default function Homeadmin() {
     <div className="min-h-screen bg-gradient-to-b from-yellow-50 to-blue-50">
       <Header />
       <Hero />
-      <Features />
       <Footer />
     </div>
   );
