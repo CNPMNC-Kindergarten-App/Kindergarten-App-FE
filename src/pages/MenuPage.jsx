@@ -1,16 +1,11 @@
 import React, { useState } from "react";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
-import { Plus, Trash2, Edit2, Copy, Calendar, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, Calendar, ChevronLeft, ChevronRight, Utensils, AlertTriangle } from "lucide-react";
 
+// --- DỮ LIỆU CỐ ĐỊNH ---
 const FOOD_GROUPS = [
-  "Tinh bột",
-  "Đạm",
-  "Rau củ",
-  "Trái cây",
-  "Sữa",
-  "Chất béo",
-  "Đồ uống"
+  "Tinh bột", "Đạm", "Rau củ", "Trái cây", "Sữa", "Chất béo", "Đồ uống"
 ];
 
 const MEALS = [
@@ -20,272 +15,128 @@ const MEALS = [
   { id: "afternoon_snack", name: "Ăn xế" }
 ];
 
-export default function MenuPage() {
-  const [viewMode, setViewMode] = useState("week"); // "week" or "day"
-  const [selectedWeek, setSelectedWeek] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [editingMeal, setEditingMeal] = useState(null);
-  const [menuData, setMenuData] = useState({});
+const DAY_NAMES = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
 
-  // Lấy ngày trong tuần
-  const getWeekDays = (date) => {
-    const startOfWeek = new Date(date);
-    const day = startOfWeek.getDay();
-    const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1);
-    startOfWeek.setDate(diff);
-    
-    const days = [];
-    for (let i = 0; i < 7; i++) {
-      const currentDay = new Date(startOfWeek);
-      currentDay.setDate(startOfWeek.getDate() + i);
-      days.push(currentDay);
-    }
-    return days;
-  };
+// --- MOCK DATA ---
+const MOCK_MENU_DATA = {
+  "2025-12-07": { 
+    "breakfast": [{ name: "Phở Gà", foodGroup: "Đạm", allergyNote: "" }],
+    "lunch": [
+      { name: "Cơm Trắng", foodGroup: "Tinh bột", allergyNote: "" },
+      { name: "Thịt Kho Tiêu", foodGroup: "Đạm", allergyNote: "" },
+      { name: "Canh Bí Đỏ", foodGroup: "Rau củ", allergyNote: "" }
+    ],
+    "afternoon_snack": [{ name: "Sữa Chua", foodGroup: "Sữa", allergyNote: "" }],
+  },
+  "2025-12-08": { 
+    "breakfast": [{ name: "Bún Bò Huế", foodGroup: "Đạm", allergyNote: "" }],
+    "lunch": [
+      { name: "Cơm Gà", foodGroup: "Đạm", allergyNote: "" },
+      { name: "Canh Chua", foodGroup: "Rau củ", allergyNote: "" }
+    ],
+    "morning_snack": [{ name: "Nước Cam Ép", foodGroup: "Trái cây", allergyNote: "" }],
+  },
+  "2025-12-09": { 
+    "breakfast": [{ name: "Bánh Mì Ốp La", foodGroup: "Tinh bột", allergyNote: "Gluten" }],
+    "lunch": [
+      { name: "Cơm Chiên Dương Châu", foodGroup: "Tinh bột", allergyNote: "" },
+      { name: "Sườn Xào Chua Ngọt", foodGroup: "Đạm", allergyNote: "" }
+    ],
+  },
+  "2025-12-10": {
+    "breakfast": [{ name: "Cháo Thịt Bằm", foodGroup: "Tinh bột", allergyNote: "" }],
+    "lunch": [{ name: "Mì Ý Sốt Bò Bằm", foodGroup: "Tinh bột", allergyNote: "Phô mai" }],
+  },
+  "2025-12-11": {
+    "breakfast": [{ name: "Bánh Cuốn", foodGroup: "Tinh bột", allergyNote: "" }],
+    "lunch": [{ name: "Cá Hồi Áp Chảo", foodGroup: "Đạm", allergyNote: "" }],
+  },
+  "2025-12-12": {
+    "breakfast": [{ name: "Sữa Tươi & Ngũ Cốc", foodGroup: "Sữa", allergyNote: "" }],
+    "lunch": [{ name: "Cà Ri Gà", foodGroup: "Đạm", allergyNote: "Cốt dừa" }],
+  },
+  "2025-12-13": {
+    "breakfast": [{ name: "Hủ Tiếu Nam Vang", foodGroup: "Đạm", allergyNote: "Hải sản" }],
+    "lunch": [{ name: "Bò Kho Bánh Mì", foodGroup: "Đạm", allergyNote: "" }],
+  },
+};
 
-  const weekDays = getWeekDays(selectedWeek);
-  const displayDate = viewMode === "week" ? selectedWeek : selectedDate;
-  const dateKey = viewMode === "week" 
-    ? `${selectedWeek.getFullYear()}-W${getWeekNumber(selectedWeek)}`
-    : selectedDate.toISOString().split('T')[0];
+// --- HELPER FUNCTIONS ---
+function formatDate(date) {
+  return date.toLocaleDateString('vi-VN', { year: 'numeric', month: '2-digit', day: '2-digit' });
+}
 
-  function getWeekNumber(date) {
-    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-    const dayNum = d.getUTCDay() || 7;
-    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-    return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+function getWeekNumber(date) {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+}
+
+const getWeekDays = (date) => {
+  const startOfWeek = new Date(date);
+  const day = startOfWeek.getDay();
+  const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1); 
+  startOfWeek.setDate(diff);
+  const days = [];
+  for (let i = 0; i < 7; i++) {
+    const currentDay = new Date(startOfWeek);
+    currentDay.setDate(startOfWeek.getDate() + i);
+    days.push(currentDay);
   }
+  return days;
+};
 
-  const getMenuForDate = (date) => {
-    const key = date.toISOString().split('T')[0];
-    return menuData[key] || {};
-  };
+const getMenuForDate = (date) => {
+  const offset = date.getTimezoneOffset();
+  const localDate = new Date(date.getTime() - (offset*60*1000));
+  const key = localDate.toISOString().split('T')[0];
+  return MOCK_MENU_DATA[key] || {};
+};
 
-  const addDish = (date, mealId, dish) => {
-    const key = date.toISOString().split('T')[0];
-    setMenuData((prev) => {
-      const newData = { ...prev };
-      if (!newData[key]) newData[key] = {};
-      if (!newData[key][mealId]) newData[key][mealId] = [];
-      newData[key][mealId] = [...newData[key][mealId], dish];
-      return newData;
-    });
-    setEditingMeal(null);
-  };
+// --- SUB COMPONENTS ---
 
-  const deleteDish = (date, mealId, dishIndex) => {
-    const key = date.toISOString().split('T')[0];
-    setMenuData((prev) => {
-      const newData = { ...prev };
-      if (newData[key] && newData[key][mealId]) {
-        newData[key][mealId] = newData[key][mealId].filter((_, i) => i !== dishIndex);
-      }
-      return newData;
-    });
-  };
-
-  const copyMenuFromPreviousWeek = () => {
-    const previousWeek = new Date(selectedWeek);
-    previousWeek.setDate(previousWeek.getDate() - 7);
-    const prevKey = `${previousWeek.getFullYear()}-W${getWeekNumber(previousWeek)}`;
-    const currentKey = `${selectedWeek.getFullYear()}-W${getWeekNumber(selectedWeek)}`;
-    
-    // Copy data from previous week days to current week days
-    const prevWeekDays = getWeekDays(previousWeek);
-    const newData = { ...menuData };
-    
-    weekDays.forEach((currentDay, index) => {
-      const prevDay = prevWeekDays[index];
-      const prevKey_date = prevDay.toISOString().split('T')[0];
-      const currentKey_date = currentDay.toISOString().split('T')[0];
-      if (menuData[prevKey_date]) {
-        newData[currentKey_date] = JSON.parse(JSON.stringify(menuData[prevKey_date]));
-      }
-    });
-    
-    setMenuData(newData);
-    alert("Đã sao chép thực đơn từ tuần trước!");
-  };
-
-  const navigateWeek = (direction) => {
-    const newDate = new Date(selectedWeek);
-    newDate.setDate(newDate.getDate() + (direction === 'next' ? 7 : -7));
-    setSelectedWeek(newDate);
-  };
-
-  const navigateDay = (direction) => {
-    const newDate = new Date(selectedDate);
-    newDate.setDate(newDate.getDate() + (direction === 'next' ? 1 : -1));
-    setSelectedDate(newDate);
-  };
-
-  const formatDate = (date) => {
-    return date.toLocaleDateString('vi-VN', { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    });
-  };
-
+function DishItemReadOnly({ dish }) {
   return (
-    <div className="min-h-screen bg-gray-100">
-      <Header />
-      
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-            <h1 className="text-3xl font-bold" style={{ color: '#19C1B6' }}>
-              Quản lý Thực đơn
-            </h1>
-            
-            <div className="flex items-center gap-4">
-              {/* View Mode Toggle */}
-              <div className="flex gap-2 bg-gray-200 rounded-lg p-1">
-                <button
-                  onClick={() => setViewMode("week")}
-                  className={`px-4 py-2 rounded-md transition-colors ${
-                    viewMode === "week"
-                      ? "bg-white text-teal-600 font-medium"
-                      : "text-gray-600"
-                  }`}
-                >
-                  Tuần
-                </button>
-                <button
-                  onClick={() => setViewMode("day")}
-                  className={`px-4 py-2 rounded-md transition-colors ${
-                    viewMode === "day"
-                      ? "bg-white text-teal-600 font-medium"
-                      : "text-gray-600"
-                  }`}
-                >
-                  Ngày
-                </button>
-              </div>
-
-              {/* Copy from previous week button */}
-              {viewMode === "week" && (
-                <button
-                  onClick={copyMenuFromPreviousWeek}
-                  className="flex items-center gap-2 px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-lg transition-colors"
-                >
-                  <Copy className="w-4 h-4" />
-                  Sao chép tuần trước
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Date Navigation */}
-          <div className="flex items-center justify-between mb-6">
-            <button
-              onClick={() => viewMode === "week" ? navigateWeek('prev') : navigateDay('prev')}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <ChevronLeft className="w-6 h-6" />
-            </button>
-            
-            <div className="text-center">
-              <h2 className="text-xl font-semibold text-gray-800">
-                {viewMode === "week" 
-                  ? `Tuần ${getWeekNumber(selectedWeek)} - ${selectedWeek.getFullYear()}`
-                  : formatDate(selectedDate)
-                }
-              </h2>
-            </div>
-            
-            <button
-              onClick={() => viewMode === "week" ? navigateWeek('next') : navigateDay('next')}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <ChevronRight className="w-6 h-6" />
-            </button>
-          </div>
+    <div className="bg-gray-50 rounded-lg p-3 flex items-start justify-between border border-gray-100 mb-2">
+      <div className="flex-1">
+        <p className="font-semibold text-gray-800 text-base">{dish.name}</p>
+        <div className="flex flex-wrap items-center gap-2 mt-1.5">
+          <span className="text-xs font-medium bg-white text-teal-700 px-2 py-0.5 rounded-full border border-teal-200">
+            {dish.foodGroup}
+          </span>
+          {dish.allergyNote && (
+            <span className="text-xs font-medium bg-red-50 text-red-600 px-2 py-0.5 rounded-full border border-red-100 flex items-center gap-1">
+              <AlertTriangle className="w-3 h-3"/> {dish.allergyNote}
+            </span>
+          )}
         </div>
-
-        {/* Menu Display */}
-        {viewMode === "week" ? (
-          <div className="grid grid-cols-1 lg:grid-cols-7 gap-4">
-            {weekDays.map((day, dayIndex) => (
-              <DayMenuCard
-                key={dayIndex}
-                date={day}
-                menu={getMenuForDate(day)}
-                onAddDish={addDish}
-                onDeleteDish={deleteDish}
-                editingMeal={editingMeal}
-                setEditingMeal={setEditingMeal}
-              />
-            ))}
-          </div>
-        ) : (
-          <DayMenuCard
-            date={selectedDate}
-            menu={getMenuForDate(selectedDate)}
-            onAddDish={addDish}
-            onDeleteDish={deleteDish}
-            editingMeal={editingMeal}
-            setEditingMeal={setEditingMeal}
-            fullWidth
-          />
-        )}
       </div>
-
-      <Footer />
-      
-      {/* Add Dish Modal */}
-      {editingMeal && (
-        <AddDishModal
-          meal={editingMeal}
-          onSave={addDish}
-          onClose={() => setEditingMeal(null)}
-        />
-      )}
     </div>
   );
 }
 
-function DayMenuCard({ date, menu, onAddDish, onDeleteDish, editingMeal, setEditingMeal, fullWidth = false }) {
-  const formatDayHeader = (date) => {
-    const days = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
-    const dayName = days[date.getDay()];
-    const dayNum = date.getDate();
-    const month = date.getMonth() + 1;
-    return `${dayName}, ${dayNum}/${month}`;
-  };
-
+// === CARD HIỂN THỊ THỰC ĐƠN (Chia 2 cột) ===
+function MenuDayCardReadOnly({ date, menu }) {
   return (
-    <div className={`bg-white rounded-xl shadow-sm p-4 ${fullWidth ? 'w-full' : ''}`}>
-      <h3 className="text-lg font-bold text-gray-800 mb-4 pb-2 border-b">
-        {fullWidth ? formatDate(date) : formatDayHeader(date)}
-      </h3>
-
-      <div className="space-y-4">
+    <div className="w-full">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {MEALS.map((meal) => (
-          <div key={meal.id} className="border rounded-lg p-3">
-            <div className="flex items-center justify-between mb-2">
-              <h4 className="font-semibold text-gray-700">{meal.name}</h4>
-              <button
-                onClick={() => setEditingMeal({ date, mealId: meal.id })}
-                className="p-1 text-teal-500 hover:bg-teal-50 rounded transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="space-y-2">
+          <div key={meal.id} className="border border-gray-200 rounded-xl p-4 bg-white shadow-sm h-full">
+            {/* ĐÃ SỬA: Tăng cỡ chữ lên text-lg và icon to hơn w-5 h-5 */}
+            <h4 className="font-bold text-teal-700 mb-4 flex items-center gap-2 text-lg uppercase tracking-wide border-b border-gray-100 pb-2">
+                 <Utensils className="w-5 h-5"/>
+                 {meal.name}
+            </h4>
+            
+            <div className="flex flex-col gap-2">
               {menu[meal.id] && menu[meal.id].length > 0 ? (
                 menu[meal.id].map((dish, index) => (
-                  <DishItem
-                    key={index}
-                    dish={dish}
-                    onDelete={() => onDeleteDish(date, meal.id, index)}
-                  />
+                  <DishItemReadOnly key={index} dish={dish} />
                 ))
               ) : (
-                <p className="text-sm text-gray-400 italic">Chưa có món ăn</p>
+                <p className="text-sm text-gray-400 italic pl-2">Chưa có món ăn</p>
               )}
             </div>
           </div>
@@ -295,127 +146,207 @@ function DayMenuCard({ date, menu, onAddDish, onDeleteDish, editingMeal, setEdit
   );
 }
 
-function DishItem({ dish, onDelete }) {
+// --- MODAL ---
+function MealViewModal({ date, menu, onClose }) {
+  const dayName = DAY_NAMES[date.getDay()];
+  const dateStr = formatDate(date);
+
   return (
-    <div className="bg-gray-50 rounded p-2 flex items-start justify-between">
-      <div className="flex-1">
-        <p className="font-medium text-gray-800">{dish.name}</p>
-        <div className="flex items-center gap-2 mt-1">
-          <span className="text-xs bg-teal-100 text-teal-700 px-2 py-1 rounded">
-            {dish.foodGroup}
-          </span>
-          {dish.allergyNote && (
-            <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded">
-              ⚠ {dish.allergyNote}
-            </span>
-          )}
+    <div 
+      className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 backdrop-blur-sm transition-all animate-in fade-in duration-200"
+      onClick={onClose}
+    >
+      <div 
+        className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[85vh] overflow-hidden flex flex-col transform transition-all scale-100"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between p-5 border-b border-gray-100 bg-teal-600 text-black">
+          <div>
+            <p className="text-teal-100 text-sm font-medium mb-1">Chi tiết thực đơn</p>
+            <h3 className="text-2xl font-bold flex items-center gap-2">
+              {dayName}, {dateStr}
+            </h3>
+          </div>
+          <button 
+            onClick={onClose} 
+            className="p-2 rounded-full hover:bg-white/20 transition-colors"
+          >
+            <X className="w-6 h-6 text-white" />
+          </button>
+        </div>
+        <div className="p-6 overflow-y-auto flex-1 bg-gray-50/50">
+          <MenuDayCardReadOnly date={date} menu={menu} />
         </div>
       </div>
-      <button
-        onClick={onDelete}
-        className="p-1 text-red-500 hover:bg-red-50 rounded transition-colors ml-2"
-      >
-        <Trash2 className="w-4 h-4" />
-      </button>
     </div>
   );
 }
 
-function AddDishModal({ meal, onSave, onClose }) {
-  const [dish, setDish] = useState({
-    name: "",
-    foodGroup: "",
-    allergyNote: ""
-  });
+// --- MAIN COMPONENT ---
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!dish.name || !dish.foodGroup) {
-      alert("Vui lòng điền đầy đủ thông tin!");
-      return;
-    }
-    onSave(meal.date, meal.mealId, dish);
+export default function MenuPage() {
+  const [selectedWeek, setSelectedWeek] = useState(new Date()); 
+  const [selectedViewDate, setSelectedViewDate] = useState(new Date()); 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  const todayMenu = getMenuForDate(new Date());
+  const weekDays = getWeekDays(selectedWeek);
+
+  const handleDayClick = (date) => {
+    setSelectedViewDate(date);
+    setIsModalOpen(true);
   };
 
+  const navigateWeek = (direction) => {
+    const newDate = new Date(selectedWeek);
+    newDate.setDate(newDate.getDate() + (direction === 'next' ? 7 : -7));
+    setSelectedWeek(newDate);
+  };
+  
+  const isToday = (date) => date.toDateString() === new Date().toDateString();
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl p-6 max-w-md w-full">
-        <h2 className="text-xl font-bold mb-4 text-gray-800">Thêm món ăn</h2>
+    <div className="min-h-screen bg-gray-50/50">
+      {/* CSS Styles nội bộ */}
+      <style>{`
+        .custom-calendar-grid {
+          display: grid;
+          grid-template-columns: repeat(7, 1fr);
+          gap: 1rem;
+          width: 100%;
+        }
+        .day-box {
+          height: 160px;
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          border-radius: 1rem;
+          border: 2px solid transparent;
+          transition: all 0.2s ease;
+          cursor: pointer;
+          position: relative;
+        }
+        .day-box-normal {
+          background-color: white;
+          border-color: #e5e7eb;
+          color: #4b5563;
+        }
+        .day-box-normal:hover {
+          border-color: #2dd4bf;
+          background-color: #f0fdfa;
+          transform: translateY(-4px); 
+          box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+          z-index: 10;
+        }
+        .day-box-today {
+          background-color: #0d9488;
+          border-color: #0d9488;
+          color: white;
+          box-shadow: 0 10px 15px -3px rgba(13, 148, 136, 0.3);
+          transform: scale(1.05);
+          z-index: 20;
+        }
+        .day-box-today:hover {
+          background-color: #0f766e;
+        }
+      `}</style>
+
+      <Header />
+      
+      <div className="max-w-7xl mx-auto px-4 py-8">
         
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Tên món ăn *
-            </label>
-            <input
-              type="text"
-              value={dish.name}
-              onChange={(e) => setDish({ ...dish, name: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-              placeholder="Ví dụ: Cơm trắng, Thịt kho..."
-              required
-            />
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
+          
+          {/* HEADER KHU VỰC LỊCH */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                <Calendar className="w-7 h-7 text-teal-500" />
+                Thực đơn Tuần {getWeekNumber(selectedWeek)}
+              </h1>
+              <p className="text-gray-500 text-sm mt-1 ml-9">
+                {formatDate(weekDays[0])} - {formatDate(weekDays[6])}
+              </p>
+            </div>
+
+            {/* THANH ĐIỀU HƯỚNG GỌN GÀNG */}
+            <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-xl w-fit border border-gray-100 self-start md:self-auto">
+              <button 
+                onClick={() => navigateWeek('prev')} 
+                className="p-2 hover:bg-white hover:shadow-sm rounded-lg text-gray-600 transition-all hover:text-teal-600"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+              
+              <div className="w-px h-6 bg-gray-200"></div>
+
+              <button 
+                onClick={() => navigateWeek('next')} 
+                className="p-2 hover:bg-white hover:shadow-sm rounded-lg text-gray-600 transition-all hover:text-teal-600"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </button>
+            </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Nhóm thực phẩm *
-            </label>
-            <select
-              value={dish.foodGroup}
-              onChange={(e) => setDish({ ...dish, foodGroup: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-              required
-            >
-              <option value="">Chọn nhóm thực phẩm</option>
-              {FOOD_GROUPS.map((group) => (
-                <option key={group} value={group}>
-                  {group}
-                </option>
-              ))}
-            </select>
+          {/* LỊCH 7 NGÀY */}
+          <div className="w-full overflow-x-auto p-4 pb-8 overflow-y-visible">
+            <div className="custom-calendar-grid min-w-[700px] md:min-w-0">
+              {weekDays.map((day, index) => {
+                const dayName = DAY_NAMES[day.getDay()];
+                const isCurrentDay = isToday(day);
+                
+                return (
+                  <div
+                    key={index}
+                    onClick={() => handleDayClick(day)}
+                    className={`day-box ${isCurrentDay ? 'day-box-today' : 'day-box-normal'}`}
+                  >
+                    <span className={`text-sm font-bold uppercase mb-2 ${isCurrentDay ? 'text-teal-100' : 'text-gray-400'}`}>
+                      {dayName.replace("Chủ Nhật", "CN")}
+                    </span>
+                    
+                    <span className="text-5xl font-extrabold tracking-tighter">
+                      {day.getDate()}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Ghi chú dị ứng (tùy chọn)
-            </label>
-            <input
-              type="text"
-              value={dish.allergyNote}
-              onChange={(e) => setDish({ ...dish, allergyNote: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-              placeholder="Ví dụ: Có đậu phộng, chứa gluten..."
-            />
-          </div>
+        </div>
 
-          <div className="flex gap-3 justify-end pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors"
-            >
-              Hủy
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-lg transition-colors"
-            >
-              Thêm món
-            </button>
+        {/* NỘI DUNG HÔM NAY */}
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="w-1.5 h-10 bg-teal-500 rounded-full shadow-sm"></div>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">Thực đơn hôm nay</h2>
+              <p className="text-gray-500 text-base font-medium flex items-center gap-2">
+                <Calendar className="w-4 h-4"/>
+                {DAY_NAMES[new Date().getDay()]}, {formatDate(new Date())}
+              </p>
+            </div>
           </div>
-        </form>
+          
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 md:p-8">
+             <MenuDayCardReadOnly date={new Date()} menu={todayMenu} />
+          </div>
+        </div>
       </div>
+
+      <Footer />
+      
+      {isModalOpen && (
+        <MealViewModal
+          date={selectedViewDate}
+          menu={getMenuForDate(selectedViewDate)}
+          onClose={() => setIsModalOpen(false)}
+        />
+      )}
     </div>
   );
 }
-
-function formatDate(date) {
-  return date.toLocaleDateString('vi-VN', { 
-    weekday: 'long', 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
-  });
-}
-
