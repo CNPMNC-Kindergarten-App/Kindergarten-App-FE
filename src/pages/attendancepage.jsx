@@ -1,5 +1,4 @@
-// src/pages/AttendancePage.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Calendar, TrendingUp, AlertCircle } from "lucide-react";
 import { AttendanceStats } from "../components/AttendanceStats";
 import { DayView } from "../components/DayView";
@@ -7,48 +6,38 @@ import { WeekView } from "../components/WeekView";
 import { MonthView } from "../components/MonthView";
 import { AbsenceRequestModal } from "../components/AbsenceRequestModal";
 import { Header } from "../components/Header";
-import { Hero } from "../components/Hero";
-import { Features } from "../components/Features";
 import { Footer } from "../components/Footer";
 
-// Mock data
-const mockAttendanceData = [
-  { id: "1", date: "2025-11-24", status: "present" },
-  { id: "2", date: "2025-11-23", status: "present" },
-  { id: "3", date: "2025-11-22", status: "late", note: "Đến trễ 15 phút" },
-  { id: "4", date: "2025-11-21", status: "present" },
-  { id: "5", date: "2025-11-20", status: "present" },
-  { id: "6", date: "2025-11-19", status: "absent-unexcused" },
-  { id: "7", date: "2025-11-18", status: "present" },
-  { id: "8", date: "2025-11-17", status: "present" },
-  { id: "9", date: "2025-11-16", status: "present" },
-  { id: "10", date: "2025-11-15", status: "absent-excused", note: "Ốm" },
-  { id: "11", date: "2025-11-14", status: "present" },
-  { id: "12", date: "2025-11-13", status: "present" },
-  { id: "13", date: "2025-11-12", status: "present" },
-  { id: "14", date: "2025-11-11", status: "late", note: "Đến trễ 10 phút" },
-  { id: "15", date: "2025-11-10", status: "present" },
-  { id: "16", date: "2025-11-09", status: "present" },
-  { id: "17", date: "2025-11-08", status: "present" },
-  { id: "18", date: "2025-11-07", status: "present" },
-  { id: "19", date: "2025-11-06", status: "absent-excused", note: "Đi khám bệnh" },
-  { id: "20", date: "2025-11-05", status: "present" },
-  { id: "21", date: "2025-11-04", status: "present" },
-  { id: "22", date: "2025-11-03", status: "present" },
-  { id: "23", date: "2025-11-02", status: "present" },
-  { id: "24", date: "2025-11-01", status: "present" },
-  { id: "25", date: "2025-10-31", status: "late" },
-  { id: "26", date: "2025-10-30", status: "present" },
-  { id: "27", date: "2025-10-29", status: "present" },
-  { id: "28", date: "2025-10-28", status: "absent-unexcused" },
-];
-
 export default function AttendancePage() {
+  // ✅ LẤY ID TRẺ TỪ LOCALSTORAGE
+  const child = JSON.parse(localStorage.getItem("selectedStudent"));
+  const childrenId = child?.id;
+
   const [viewMode, setViewMode] = useState("day");
-  const [attendanceData, setAttendanceData] = useState(mockAttendanceData);
+  const [attendanceData, setAttendanceData] = useState([]);
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // ✅ GET ĐIỂM DANH THEO CHILD ID
+  useEffect(() => {
+    if (!childrenId) return;
+
+    const fetchAttendance = async () => {
+      try {
+        const res = await fetch(
+          `https://bk-kindergarten.fly.dev/api/attend/child/${childrenId}`
+        );
+        const data = await res.json();
+        setAttendanceData(data);
+      } catch (error) {
+        console.error("Lỗi tải điểm danh:", error);
+      }
+    };
+
+    fetchAttendance();
+  }, [childrenId]);
+
+  // ✅ MỞ MODAL XIN PHÉP
   const handleRequestAbsence = (recordId) => {
     const record = attendanceData.find((r) => r.id === recordId);
     if (record) {
@@ -57,8 +46,29 @@ export default function AttendancePage() {
     }
   };
 
-  const handleSubmitRequest = (reason) => {
-    if (selectedRecord) {
+  // ✅ POST ĐƠN XIN PHÉP
+  const handleSubmitRequest = async (reason) => {
+    if (!selectedRecord || !childrenId) return;
+
+    const payload = {
+      reason: reason,
+      start_date: selectedRecord.date,
+      end_date: selectedRecord.date,
+      child_id: childrenId,
+    };
+
+    try {
+      const res = await fetch("http://localhost:8080/absence/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) throw new Error("Gửi đơn thất bại");
+
+      // ✅ CẬP NHẬT LẠI UI SAU KHI GỬI THÀNH CÔNG
       setAttendanceData((prev) =>
         prev.map((record) =>
           record.id === selectedRecord.id
@@ -66,18 +76,20 @@ export default function AttendancePage() {
             : record
         )
       );
+    } catch (error) {
+      console.error("Lỗi gửi đơn:", error);
     }
+
     setIsModalOpen(false);
     setSelectedRecord(null);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-yellow-50 to-blue-50">
+      <Header />
 
-        <Header />
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
-        
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <Calendar className="w-8 h-8 text-indigo-600" />
@@ -95,10 +107,11 @@ export default function AttendancePage() {
               <h2 className="text-indigo-900 mb-2">Thông tin học sinh</h2>
               <div className="space-y-1 text-gray-700">
                 <p>
-                  <span className="text-gray-500">Họ và tên:</span> Nguyễn Văn An
+                  <span className="text-gray-500">Họ và tên:</span>{" "}
+                  {child?.name || "—"}
                 </p>
                 <p>
-                  <span className="text-gray-500">Lớp:</span> 10A1
+                  <span className="text-gray-500">Lớp:</span> {child?.className || "—"}
                 </p>
                 <p>
                   <span className="text-gray-500">Học kỳ:</span> Học kỳ I - Năm
@@ -154,7 +167,7 @@ export default function AttendancePage() {
           </div>
         </div>
 
-        {/* Unexcused Absence Alert */}
+        {/* Unexcused Alert */}
         {attendanceData.some((r) => r.status === "absent-unexcused") && (
           <div className="bg-white border border-red-200 rounded-xl p-4 mb-6 flex items-start gap-3">
             <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
@@ -181,13 +194,12 @@ export default function AttendancePage() {
           {viewMode === "month" && <MonthView data={attendanceData} />}
         </div>
 
-        {/* Footer Info */}
         <div className="mt-6 text-center text-gray-500 text-sm">
           Dữ liệu được cập nhật theo thời gian thực từ hệ thống trường học
         </div>
       </div>
 
-      {/* Absence Request Modal */}
+      {/* Modal */}
       {isModalOpen && selectedRecord && (
         <AbsenceRequestModal
           record={selectedRecord}
@@ -198,6 +210,7 @@ export default function AttendancePage() {
           onSubmit={handleSubmitRequest}
         />
       )}
+
       <Footer />
     </div>
   );

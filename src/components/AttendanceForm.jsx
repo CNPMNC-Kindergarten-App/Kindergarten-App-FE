@@ -4,6 +4,9 @@ import { toast } from "sonner"; // nhớ đã cài: npm install sonner
 import { StudentCard } from "./StudentCard";
 import { AttendanceStats } from "./AttendanceStatsadmin";
 
+console.log("API URL:", import.meta.env.VITE_API_URL);
+
+
 export function AttendanceForm() {
   const [classId, setClassId] = useState("1");
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
@@ -14,110 +17,44 @@ export function AttendanceForm() {
   const [lastSaved, setLastSaved] = useState("");
 
   // Mock student data - replace with API call
-  const mockStudents = [
-    {
-      id: 1,
-      name: "Nguyễn Văn An",
-      studentCode: "HS001",
-      avatar:
-        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100",
-    },
-    {
-      id: 2,
-      name: "Trần Thị Bình",
-      studentCode: "HS002",
-      avatar:
-        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100",
-    },
-    {
-      id: 3,
-      name: "Lê Hoàng Minh",
-      studentCode: "HS003",
-      avatar:
-        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100",
-    },
-    {
-      id: 4,
-      name: "Phạm Thị Hương",
-      studentCode: "HS004",
-      avatar:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100",
-    },
-    {
-      id: 5,
-      name: "Hoàng Văn Đức",
-      studentCode: "HS005",
-      avatar:
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100",
-    },
-    {
-      id: 6,
-      name: "Vũ Thị Mai",
-      studentCode: "HS006",
-      avatar:
-        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100",
-    },
-    {
-      id: 7,
-      name: "Đỗ Văn Tùng",
-      studentCode: "HS007",
-      avatar:
-        "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100",
-    },
-    {
-      id: 8,
-      name: "Bùi Thị Lan",
-      studentCode: "HS008",
-      avatar:
-        "https://images.unsplash.com/photo-1489424731084-a5d8b219a5bb?w=100",
-    },
-  ];
-
+  
   // Load attendance data
   const loadAttendance = async () => {
-    setIsLoading(true);
-    try {
-      const response = await fetch(
-        `http://localhost:8080/api/attend/class?classId=${classId}&date=${date}`
-      );
+  setIsLoading(true);
+  try {
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/attend/class?classId=${classId}&date=${date}`
+    );
 
-      if (response.ok) {
-        const data = await response.json();
-
-        // Merge attendance data with student list
-        const studentsWithAttendance = mockStudents.map((student) => {
-          const attendance = data.find((a) => a.childId === student.id);
-          return {
-            ...student,
-            status: attendance ? attendance.status : "present",
-          };
-        });
-
-        setStudents(studentsWithAttendance);
-        setHasChanges(false);
-        toast.success("Đã tải dữ liệu điểm danh");
-      } else {
-        // No attendance data found, use default
-        const studentsWithDefault = mockStudents.map((student) => ({
-          ...student,
-          status: "present",
-        }));
-        setStudents(studentsWithDefault);
-        toast.info("Chưa có dữ liệu điểm danh cho ngày này");
-      }
-    } catch (error) {
-      console.error("Error loading attendance:", error);
-      // Use mock data if API fails
-      const studentsWithDefault = mockStudents.map((student) => ({
-        ...student,
-        status: "present",
-      }));
-      setStudents(studentsWithDefault);
-      toast.error("Không thể kết nối đến server. Sử dụng dữ liệu mẫu.");
-    } finally {
-      setIsLoading(false);
+    if (!response.ok) {
+      throw new Error("API error");
     }
-  };
+
+    const data = await response.json();
+
+    // ✅ MAP ĐÚNG THEO JSON THẬT TỪ BACKEND
+    const studentsWithAttendance = data.map((s) => ({
+      id: s.child.id,
+      name: s.child.name,
+      studentCode: `HS${s.child.id.toString().padStart(3, "0")}`,
+      avatar:
+        "https://ui-avatars.com/api/?name=" +
+        encodeURIComponent(s.child.name),
+      status: s.status || "present",
+    }));
+
+    setStudents(studentsWithAttendance);
+    setHasChanges(false);
+    toast.success("Đã tải dữ liệu điểm danh");
+  } catch (error) {
+    console.error("Error loading attendance:", error);
+    setStudents([]); // ✅ Không dùng mock nữa
+    toast.error("Không thể kết nối đến server.");
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   useEffect(() => {
     loadAttendance();
@@ -139,7 +76,7 @@ export function AttendanceForm() {
     try {
       // Send attendance for each student
       const promises = students.map((student) =>
-        fetch("http://localhost:8080/api/attend", {
+        fetch(`${import.meta.env.VITE_API_URL}/api/attend`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

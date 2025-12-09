@@ -49,6 +49,7 @@ export function Login({ onShowRegister, onLoginSuccess }) {
   const userData = {
     email,
     role: userType, // "parent" hoặc "teacher"
+    parent_id: 1
   };
 
   // ✅ LƯU ROLE TẠM THỜI (localStorage)
