@@ -18,6 +18,7 @@ import StudentList from "./pageadmin/studentlist";
 import RegisterStudent from "./pageadmin/registerStudent";
 import ProfileAdmin from "./pageadmin/profileAdmin";
 import Attendanceadmin from "./pageadmin/attendanceadmin";
+import MenuPageAdmin from "./pageadmin/MenuPageAdmin"
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -79,6 +80,8 @@ export default function App() {
         <Route path="/registerstudent" element={<RegisterStudent />} />
         <Route path="/profile" element={<ProfileAdmin />} />
         <Route path="/attendanceadmin" element={<Attendanceadmin />} />
+        <Route path="/MenuPageAdmin" element={<MenuPageAdmin />} />
+
       </>
     )}
 
