@@ -1,6 +1,8 @@
 import { Check, X, Clock, FileCheck } from "lucide-react";
 
 export function StudentCard({ student, onStatusChange }) {
+  if (!student) return null; // ✅ chống crash khi student undefined
+
   const statusConfig = {
     present: {
       label: "Có mặt",
@@ -38,10 +40,31 @@ export function StudentCard({ student, onStatusChange }) {
       textColor: "text-orange-700",
       bgColor: "bg-orange-50",
     },
+
+    // ✅ MAP THÊM TRƯỜNG HỢP API CŨ
+    "absent-excused": {
+      label: "Vắng có phép",
+      icon: FileCheck,
+      color: "bg-blue-500",
+      hoverColor: "hover:bg-blue-600",
+      borderColor: "border-blue-500",
+      textColor: "text-blue-700",
+      bgColor: "bg-blue-50",
+    },
+    "absent-unexcused": {
+      label: "Vắng không phép",
+      icon: X,
+      color: "bg-red-500",
+      hoverColor: "hover:bg-red-600",
+      borderColor: "border-red-500",
+      textColor: "text-red-700",
+      bgColor: "bg-red-50",
+    },
   };
 
+  // ✅ FALLBACK AN TOÀN
   const currentStatus = student.status || "present";
-  const config = statusConfig[currentStatus];
+  const config = statusConfig[currentStatus] || statusConfig.present;
   const StatusIcon = config.icon;
 
   return (
@@ -56,14 +79,14 @@ export function StudentCard({ student, onStatusChange }) {
               src={
                 student.avatar ||
                 `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                  student.name
+                  student.name || "Student"
                 )}&background=random`
               }
               alt={student.name}
               className="w-12 h-12 rounded-full object-cover border-2 border-white"
               onError={(e) => {
                 e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                  student.name
+                  student.name || "Student"
                 )}&background=random`;
               }}
             />
@@ -73,9 +96,12 @@ export function StudentCard({ student, onStatusChange }) {
               <StatusIcon className="w-3 h-3 text-white" />
             </div>
           </div>
+
           <div className="flex-1 min-w-0">
             <p className="text-gray-900 truncate">{student.name}</p>
-            <p className="text-sm text-gray-600">{student.studentCode}</p>
+            <p className="text-sm text-gray-600">
+              {student.studentCode || "—"}
+            </p>
           </div>
         </div>
 
@@ -92,7 +118,7 @@ export function StudentCard({ student, onStatusChange }) {
         <button
           onClick={() => onStatusChange(student.id, "present")}
           className={`p-2 rounded text-sm transition-colors ${
-            student.status === "present"
+            currentStatus === "present"
               ? "bg-green-500 text-white"
               : "bg-white text-gray-700 hover:bg-green-50"
           }`}
@@ -104,7 +130,7 @@ export function StudentCard({ student, onStatusChange }) {
         <button
           onClick={() => onStatusChange(student.id, "late")}
           className={`p-2 rounded text-sm transition-colors ${
-            student.status === "late"
+            currentStatus === "late"
               ? "bg-orange-500 text-white"
               : "bg-white text-gray-700 hover:bg-orange-50"
           }`}
@@ -116,7 +142,8 @@ export function StudentCard({ student, onStatusChange }) {
         <button
           onClick={() => onStatusChange(student.id, "absent_with_permission")}
           className={`p-2 rounded text-sm transition-colors ${
-            student.status === "absent_with_permission"
+            currentStatus === "absent_with_permission" ||
+            currentStatus === "absent-excused"
               ? "bg-blue-500 text-white"
               : "bg-white text-gray-700 hover:bg-blue-50"
           }`}
@@ -130,7 +157,8 @@ export function StudentCard({ student, onStatusChange }) {
             onStatusChange(student.id, "absent_without_permission")
           }
           className={`p-2 rounded text-sm transition-colors ${
-            student.status === "absent_without_permission"
+            currentStatus === "absent_without_permission" ||
+            currentStatus === "absent-unexcused"
               ? "bg-red-500 text-white"
               : "bg-white text-gray-700 hover:bg-red-50"
           }`}

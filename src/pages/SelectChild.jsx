@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useChild } from "../contexts/ChildContext";
+import { useChild } from "../contexts/StudentContext";
 
 export default function SelectChild() {
   const [childrenList, setChildrenList] = useState([]);
@@ -16,7 +16,7 @@ export default function SelectChild() {
     const API_URL = import.meta.env.VITE_API_URL; // ✅ LẤY TỪ .env
 
     fetch(`${API_URL}/children?parent_id=${parentId}`)
-
+uy
       .then((res) => {
         if (!res.ok) throw new Error("HTTP error " + res.status);
         return res.json();
