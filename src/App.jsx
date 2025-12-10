@@ -19,6 +19,7 @@ import RegisterStudent from "./pageadmin/registerStudent";
 import ProfileAdmin from "./pageadmin/profileAdmin";
 import Attendanceadmin from "./pageadmin/attendanceadmin";
 import MenuPageAdmin from "./pageadmin/MenuPageAdmin"
+import AbsenceAdmin from "./pageadmin/absenceAdmin"
 
 import { StudentSelection } from "./components/StudentSelection.jsx";
 import { useStudent } from "./contexts/StudentContext.jsx"; // ✅ DÙNG CONTEXT
@@ -106,6 +107,7 @@ export default function App() {
             <Route path="/profile" element={<ProfileAdmin />} />
             <Route path="/attendanceadmin" element={<Attendanceadmin />} />
             <Route path="/MenuPageAdmin" element={<MenuPageAdmin/>} />
+            <Route path="/AbsenceAdmin" element={<AbsenceAdmin/>}/>
           </>
         )}
 
