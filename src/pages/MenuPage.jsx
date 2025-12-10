@@ -5,7 +5,7 @@ import { Footer } from "../components/Footer";
 import { X, Calendar, ChevronLeft, ChevronRight, Utensils, AlertTriangle, Loader2 } from "lucide-react";
 
 
-const API_BASE_URL = "https://59vjl8w1-8080.asse.devtunnels.ms/api/v1/menus";
+const API_BASE_URL = "https://bk-kindergarten.fly.dev/api/v1/menus";
 
 const MEALS = [
   { id: "breakfast", name: "Ăn sáng" },
@@ -120,7 +120,7 @@ function MealViewModal({ date, menu, onClose }) {
         <div className="flex items-center justify-between p-5 border-b border-gray-100 bg-teal-600 text-black">
           <div>
             <p className="text-teal-100 text-sm font-medium mb-1">Chi tiết thực đơn</p>
-            <h3 className="text-2xl font-bold flex items-center gap-2 text-white">
+            <h3 className="text-2xl font-bold flex items-center gap-2 text-black">
               {dayName}, {dateStr}
             </h3>
           </div>

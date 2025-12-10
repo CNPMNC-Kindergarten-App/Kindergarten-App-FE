@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Header } from "../components/Headeradmin";
 import { Footer } from "../components/Footer";
 import { 
@@ -7,51 +7,38 @@ import {
   FileText, 
   Clock, 
   CheckCircle2, 
-  XCircle, 
   AlertCircle, 
-  Check, 
-  X 
+  Check 
 } from "lucide-react";
 
-// Dữ liệu giả lập
-const MOCK_REQUESTS = [
-  {
-    id: 1,
-    studentName: "Nguyễn Văn A",
-    class: "Lớp 3A",
-    reason: "Sốt cao, đau họng",
-    start_date: "2024-05-20",
-    end_date: "2024-05-22",
-    status: "PENDING",
-    notes: "Gia đình xin phép cho cháu nghỉ để đi khám bệnh.",
-  },
-  {
-    id: 2,
-    studentName: "Trần Thị B",
-    class: "Lớp 4B",
-    reason: "Việc gia đình",
-    start_date: "2024-05-25",
-    end_date: "2024-05-25",
-    status: "PENDING",
-    notes: "",
-  },
-  {
-    id: 3,
-    studentName: "Lê Văn C",
-    class: "Lớp 5A",
-    reason: "Du lịch cùng gia đình",
-    start_date: "2024-05-10",
-    end_date: "2024-05-12",
-    status: "ACCEPTED",
-    notes: "",
-  },
-];
+// ✅ CẤU HÌNH BASE URL
+const API_BASE_URL = "https://bk-kindergarten.fly.dev/api";
 
 export default function TeacherAbsenceManager() {
-  const [requests, setRequests] = useState(MOCK_REQUESTS);
-  const [filterStatus, setFilterStatus] = useState("PENDING"); // 'PENDING' | 'HISTORY'
+  const [requests, setRequests] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [filterStatus, setFilterStatus] = useState("PENDING");
 
-  // --- Helper Functions (Tái sử dụng logic cũ) ---
+  // ✅ GET ALL REQUESTS TỪ API
+  useEffect(() => {
+    fetchRequests();
+  }, []);
+
+  const fetchRequests = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/absence/getAll`);
+      if (!res.ok) throw new Error("Failed to fetch");
+      const data = await res.json();
+      setRequests(data);
+    } catch (error) {
+      console.error("Lỗi lấy danh sách:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // --- Helper Functions ---
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
     const date = new Date(dateString);
@@ -70,12 +57,32 @@ export default function TeacherAbsenceManager() {
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
   };
 
-  const handleApprove = (id) => {
-    setRequests(prev => prev.map(req => req.id === id ? { ...req, status: "ACCEPTED" } : req));
-  };
+  // ✅ HANDLE APPROVE
+  const handleApprove = async (request) => {
+    const idToAccept = request.child_id || request.absenceId; 
 
-  const handleReject = (id) => {
-    setRequests(prev => prev.map(req => req.id === id ? { ...req, status: "REJECTED" } : req));
+    if (!idToAccept) {
+      alert("Không tìm thấy ID để duyệt!");
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/absence/accept/${idToAccept}`, {
+        method: "PUT",
+      });
+
+      if (!res.ok) throw new Error("Duyệt thất bại");
+
+      setRequests((prev) =>
+        prev.map((req) =>
+          req.absenceId === request.absenceId ? { ...req, status: "ACCEPTED" } : req
+        )
+      );
+      alert("Đã duyệt đơn thành công!");
+    } catch (error) {
+      console.error("Lỗi duyệt đơn:", error);
+      alert("Có lỗi xảy ra khi duyệt đơn.");
+    }
   };
 
   // --- Render Helpers ---
@@ -88,14 +95,6 @@ export default function TeacherAbsenceManager() {
         </div>
       );
     }
-    if (status === "REJECTED") {
-      return (
-        <div className="flex items-center gap-1 text-red-700 bg-red-100 px-3 py-1 rounded-full text-sm font-medium">
-          <XCircle className="w-4 h-4" />
-          <span>Đã từ chối</span>
-        </div>
-      );
-    }
     return (
       <div className="flex items-center gap-1 text-orange-700 bg-orange-100 px-3 py-1 rounded-full text-sm font-medium">
         <Clock className="w-4 h-4" />
@@ -104,10 +103,13 @@ export default function TeacherAbsenceManager() {
     );
   };
 
-  // Filter logic
-  const filteredRequests = requests.filter(req => {
-    if (filterStatus === "PENDING") return req.status === "PENDING";
-    return req.status === "ACCEPTED" || req.status === "REJECTED";
+  // ✅ FILTER LOGIC
+  const filteredRequests = requests.filter((req) => {
+    const status = req.status; 
+    if (filterStatus === "PENDING") {
+        return status !== "ACCEPTED"; 
+    }
+    return status === "ACCEPTED";
   });
 
   return (
@@ -135,9 +137,9 @@ export default function TeacherAbsenceManager() {
                 >
                 <Clock className="w-4 h-4" />
                 Chờ duyệt
-                {requests.filter(r => r.status === "PENDING").length > 0 && (
+                {requests.filter(r => r.status !== "ACCEPTED").length > 0 && (
                     <span className="bg-red-500 text-white text-sm font-bold px-2 py-0.5 rounded-full ml-2">
-                    {requests.filter(r => r.status === "PENDING").length}
+                    {requests.filter(r => r.status !== "ACCEPTED").length}
                     </span>
                 )}
             </button>
@@ -157,7 +159,9 @@ export default function TeacherAbsenceManager() {
 
           {/* Content List */}
           <div className="space-y-4">
-            {filteredRequests.length === 0 ? (
+            {isLoading ? (
+                <div className="text-center py-12 text-gray-500">Đang tải dữ liệu...</div>
+            ) : filteredRequests.length === 0 ? (
               <div className="text-center py-12 bg-gray-50 rounded-lg border border-dashed border-gray-300">
                 <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm">
                   <AlertCircle className="w-8 h-8 text-gray-400" />
@@ -171,11 +175,13 @@ export default function TeacherAbsenceManager() {
             ) : (
               filteredRequests.map((req) => {
                 const days = calculateDays(req.start_date, req.end_date);
+                const displayName = req.childName || "Học sinh";
                 
                 return (
                   <div 
-                    key={req.id} 
-                    className="border border-gray-200 rounded-lg hover:shadow-md transition-shadow duration-200 bg-white overflow-hidden"
+                    key={req.absenceId} 
+                    // ⚠️ ĐÃ XÓA hover:shadow-md ở đây
+                    className="border border-gray-200 rounded-lg bg-white overflow-hidden"
                   >
                     <div className="p-5">
                       <div className="flex justify-between items-start mb-4">
@@ -184,8 +190,8 @@ export default function TeacherAbsenceManager() {
                             <User className="w-6 h-6 text-[#19C1B6]" />
                           </div>
                           <div>
-                            <h3 className="font-bold text-gray-800 text-lg">{req.studentName}</h3>
-                            <p className="text-sm text-gray-500 font-medium">{req.class}</p>
+                            <h3 className="font-bold text-gray-800 text-lg">{displayName}</h3>
+                            <p className="text-sm text-gray-500 font-medium">ID Đơn: {req.absenceId}</p>
                           </div>
                         </div>
                         {getStatusBadge(req.status)}
@@ -214,33 +220,19 @@ export default function TeacherAbsenceManager() {
                             </span>
                           </div>
                         </div>
-
-                        {/* Notes */}
-                        {req.notes && (
-                          <div className="md:col-span-2 pt-2 mt-2 border-t border-gray-200">
-                            <p className="text-sm text-gray-600 italic">
-                              <span className="font-semibold not-italic">Ghi chú:</span> {req.notes}
-                            </p>
-                          </div>
-                        )}
                       </div>
                     </div>
 
-                    {/* Actions Area - Chỉ hiện khi đang chờ duyệt */}
-                    {req.status === "PENDING" && (
+                    {/* Actions Area */}
+                    {req.status !== "ACCEPTED" && (
                       <div className="bg-gray-50 px-5 py-3 border-t border-gray-100 flex justify-end gap-3">
                         <button
-                          onClick={() => handleReject(req.id)}
-                          className="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors"
+                          onClick={() => handleApprove(req)}  
+                          // ✨ NÚT DUYỆT ĐƠN ĐÃ ĐƯỢC NÂNG CẤP HI8  U ỨNG
+                          className="flex items-center gap-2 px-8 py-2.5 rounded-lg bg-[#19C1B6] text-white font-bold hover:bg-[#139c94] hover:shadow-lg hover:scale-105 active:scale-95 transition-all duration-200 ease-in-out"
+                          style={{ fontWeight: 900 , backgroundColor: '#19C1B6' }}
                         >
-                          <X className="w-4 h-4" /> Từ chối
-                        </button>
-                        <button
-                          onClick={() => handleApprove(req.id)}
-                          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#19C1B6] text-white font-medium hover:bg-[#15A097] shadow-sm transition-colors"
-                          style={{ backgroundColor: '#19C1B6', fontWeight: 900 }}
-                        >
-                          <Check className="w-4 h-4 "/> Duyệt đơn
+                          <Check className="w-5 h-5" /> Duyệt đơn
                         </button>
                       </div>
                     )}

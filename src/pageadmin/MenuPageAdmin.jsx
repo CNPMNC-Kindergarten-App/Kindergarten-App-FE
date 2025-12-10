@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 
 // --- CẤU HÌNH API ---
-const API_BASE_URL = "https://59vjl8w1-8080.asse.devtunnels.ms/api/v1/menus";
+const API_BASE_URL = "https://bk-kindergarten.fly.dev/api/v1/menus";
 
 // --- DỮ LIỆU CỐ ĐỊNH ---
 const FOOD_GROUPS = [

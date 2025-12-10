@@ -85,9 +85,7 @@ export function Header() {
                 className="hidden md:block hover:bg-teal-600 text-black px-8 py-2.5 rounded-full transition-colors no-underline"
                 style={{ fontWeight: 700 , backgroundColor: 'orange'}}
               >
-                Xin chào cô:
-                <br />
-                <span style={{ fontWeight: 700 }}>Trần Hà Linh</span>
+                Xin chào quý thầy cô:
               </Link>
               <button className="md:hidden p-2">
                 <Menu className="w-6 h-6 text-teal-500" />

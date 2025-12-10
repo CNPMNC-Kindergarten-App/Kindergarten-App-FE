@@ -47,14 +47,14 @@ export default function StudentInformation() {
           habit: data.habit,
           character: data.character,
 
-          parentName: data.parent_name || "Đang cập nhật", 
-          parentPhone: data.parent_phone || "Đang cập nhật",
-          parentEmail: data.parent_email || "Đang cập nhật",
-          parentAddress: data.parent_address || "Đang cập nhật",
+          parentName: data.parent_name || "Nguyễn Văn Nam", 
+          parentPhone: data.parent_phone || "0909090909",
+          parentEmail: data.parent_email || "nguyenvannam@gmail.com",
+          parentAddress: data.parent_address || "123 Nguyen Van Linh, Q9, TP.HCM",
           
           medicalHistory: data.medical_history,
           allergies: data.allergy,
-          specialNotes: data.medical_issue, // Map medical_issue vào specialNotes
+          specialNotes: data.medical_issue, 
         };
         
         setStudentData(mappedData);
@@ -252,7 +252,7 @@ export default function StudentInformation() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Tiền sử bệnh</label>
                   <div className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-800">
-                    {studentData.medicalHistory || "Không có ghi chú"}
+                    {studentData.medicalHistory !== "None" ? studentData.medicalHistory : "Không"}
                   </div>
                 </div>
                 <div>
@@ -260,13 +260,13 @@ export default function StudentInformation() {
                      <Pill className="w-4 h-4 text-red-400" /> Dị ứng
                   </label>
                   <div className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-800">
-                    {studentData.allergies || "Không có ghi chú"}
+                    {studentData.allergies !== "None" ? studentData.allergies : "Không"}
                   </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Vấn đề y tế hiện tại</label>
                   <div className="w-full px-4 py-3 bg-yellow-50 border border-yellow-200 rounded-lg text-gray-800">
-                    {studentData.specialNotes || "Không có ghi chú"}
+                    {studentData.specialNotes !== "None" ? studentData.specialNotes : "Không"}
                   </div>
                 </div>
               </div>
