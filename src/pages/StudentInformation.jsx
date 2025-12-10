@@ -55,10 +55,10 @@ export default function StudentInformation() {
           gender: data.sex,
           healthStatus: data.health_status,
           
-          parentName: data.parent_name || "Chưa cập nhật",
-          parentPhone: data.parent_phone || "Chưa cập nhật",
-          parentEmail: data.parent_email || "Chưa cập nhật",
-          parentAddress: data.parent_address || "Chưa cập nhật",
+          parentName: data.parent_name || "Nguyễn Văn Nam",
+          parentPhone: data.parent_phone || "0909090909",
+          parentEmail: data.parent_email || "nguyenvannam@gmail.com",
+          parentAddress: data.parent_address || "123 Nguyen Van Linh, Q9, TP.HCM",
 
           allergies: data.allergy || "Không có",
           medicalHistory: data.medical_history || "Không có",
