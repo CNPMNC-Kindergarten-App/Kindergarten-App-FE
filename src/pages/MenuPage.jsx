@@ -1,12 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios"; // Nhớ cài đặt: npm install axios
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
-import { X, Calendar, ChevronLeft, ChevronRight, Utensils, AlertTriangle } from "lucide-react";
+import { X, Calendar, ChevronLeft, ChevronRight, Utensils, AlertTriangle, Loader2 } from "lucide-react";
 
-// --- DỮ LIỆU CỐ ĐỊNH ---
-const FOOD_GROUPS = [
-  "Tinh bột", "Đạm", "Rau củ", "Trái cây", "Sữa", "Chất béo", "Đồ uống"
-];
+
+const API_BASE_URL = "https://59vjl8w1-8080.asse.devtunnels.ms/api/v1/menus";
 
 const MEALS = [
   { id: "breakfast", name: "Ăn sáng" },
@@ -17,53 +16,17 @@ const MEALS = [
 
 const DAY_NAMES = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
 
-// --- MOCK DATA ---
-const MOCK_MENU_DATA = {
-  "2025-12-07": { 
-    "breakfast": [{ name: "Phở Gà", foodGroup: "Đạm", allergyNote: "" }],
-    "lunch": [
-      { name: "Cơm Trắng", foodGroup: "Tinh bột", allergyNote: "" },
-      { name: "Thịt Kho Tiêu", foodGroup: "Đạm", allergyNote: "" },
-      { name: "Canh Bí Đỏ", foodGroup: "Rau củ", allergyNote: "" }
-    ],
-    "afternoon_snack": [{ name: "Sữa Chua", foodGroup: "Sữa", allergyNote: "" }],
-  },
-  "2025-12-08": { 
-    "breakfast": [{ name: "Bún Bò Huế", foodGroup: "Đạm", allergyNote: "" }],
-    "lunch": [
-      { name: "Cơm Gà", foodGroup: "Đạm", allergyNote: "" },
-      { name: "Canh Chua", foodGroup: "Rau củ", allergyNote: "" }
-    ],
-    "morning_snack": [{ name: "Nước Cam Ép", foodGroup: "Trái cây", allergyNote: "" }],
-  },
-  "2025-12-09": { 
-    "breakfast": [{ name: "Bánh Mì Ốp La", foodGroup: "Tinh bột", allergyNote: "Gluten" }],
-    "lunch": [
-      { name: "Cơm Chiên Dương Châu", foodGroup: "Tinh bột", allergyNote: "" },
-      { name: "Sườn Xào Chua Ngọt", foodGroup: "Đạm", allergyNote: "" }
-    ],
-  },
-  "2025-12-10": {
-    "breakfast": [{ name: "Cháo Thịt Bằm", foodGroup: "Tinh bột", allergyNote: "" }],
-    "lunch": [{ name: "Mì Ý Sốt Bò Bằm", foodGroup: "Tinh bột", allergyNote: "Phô mai" }],
-  },
-  "2025-12-11": {
-    "breakfast": [{ name: "Bánh Cuốn", foodGroup: "Tinh bột", allergyNote: "" }],
-    "lunch": [{ name: "Cá Hồi Áp Chảo", foodGroup: "Đạm", allergyNote: "" }],
-  },
-  "2025-12-12": {
-    "breakfast": [{ name: "Sữa Tươi & Ngũ Cốc", foodGroup: "Sữa", allergyNote: "" }],
-    "lunch": [{ name: "Cà Ri Gà", foodGroup: "Đạm", allergyNote: "Cốt dừa" }],
-  },
-  "2025-12-13": {
-    "breakfast": [{ name: "Hủ Tiếu Nam Vang", foodGroup: "Đạm", allergyNote: "Hải sản" }],
-    "lunch": [{ name: "Bò Kho Bánh Mì", foodGroup: "Đạm", allergyNote: "" }],
-  },
-};
 
-// --- HELPER FUNCTIONS ---
 function formatDate(date) {
   return date.toLocaleDateString('vi-VN', { year: 'numeric', month: '2-digit', day: '2-digit' });
+}
+
+function getDateKey(date) {
+  const d = new Date(date);
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  return `${day}/${month}/${year}`;
 }
 
 function getWeekNumber(date) {
@@ -88,24 +51,19 @@ const getWeekDays = (date) => {
   return days;
 };
 
-const getMenuForDate = (date) => {
-  const offset = date.getTimezoneOffset();
-  const localDate = new Date(date.getTime() - (offset*60*1000));
-  const key = localDate.toISOString().split('T')[0];
-  return MOCK_MENU_DATA[key] || {};
-};
-
-// --- SUB COMPONENTS ---
+// --- SUB COMPONENTS (READ ONLY) ---
 
 function DishItemReadOnly({ dish }) {
   return (
-    <div className="bg-gray-50 rounded-lg p-3 flex items-start justify-between border border-gray-100 mb-2">
+    <div className="bg-gray-50 rounded-lg p-3 flex items-start justify-between border border-gray-100 mb-2 hover:bg-teal-50 transition-colors">
       <div className="flex-1">
         <p className="font-semibold text-gray-800 text-base">{dish.name}</p>
         <div className="flex flex-wrap items-center gap-2 mt-1.5">
+          {/* Mapping: Nutrients -> FoodGroup */}
           <span className="text-xs font-medium bg-white text-teal-700 px-2 py-0.5 rounded-full border border-teal-200">
             {dish.foodGroup}
           </span>
+          {/* Mapping: Allergy -> AllergyNote */}
           {dish.allergyNote && (
             <span className="text-xs font-medium bg-red-50 text-red-600 px-2 py-0.5 rounded-full border border-red-100 flex items-center gap-1">
               <AlertTriangle className="w-3 h-3"/> {dish.allergyNote}
@@ -117,26 +75,25 @@ function DishItemReadOnly({ dish }) {
   );
 }
 
-// === CARD HIỂN THỊ THỰC ĐƠN (Chia 2 cột) ===
-function MenuDayCardReadOnly({ date, menu }) {
+// === CARD HIỂN THỊ THỰC ĐƠN ===
+function MenuDayCardReadOnly({ menu }) {
   return (
     <div className="w-full">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {MEALS.map((meal) => (
           <div key={meal.id} className="border border-gray-200 rounded-xl p-4 bg-white shadow-sm h-full">
-            {/* ĐÃ SỬA: Tăng cỡ chữ lên text-lg và icon to hơn w-5 h-5 */}
             <h4 className="font-bold text-teal-700 mb-4 flex items-center gap-2 text-lg uppercase tracking-wide border-b border-gray-100 pb-2">
-                 <Utensils className="w-5 h-5"/>
-                 {meal.name}
+                  <Utensils className="w-5 h-5"/>
+                  {meal.name}
             </h4>
             
             <div className="flex flex-col gap-2">
-              {menu[meal.id] && menu[meal.id].length > 0 ? (
+              {menu && menu[meal.id] && menu[meal.id].length > 0 ? (
                 menu[meal.id].map((dish, index) => (
                   <DishItemReadOnly key={index} dish={dish} />
                 ))
               ) : (
-                <p className="text-sm text-gray-400 italic pl-2">Chưa có món ăn</p>
+                <p className="text-sm text-gray-400 italic pl-2 py-2">Chưa có món ăn</p>
               )}
             </div>
           </div>
@@ -146,7 +103,7 @@ function MenuDayCardReadOnly({ date, menu }) {
   );
 }
 
-// --- MODAL ---
+// --- MODAL CHI TIẾT NGÀY ---
 function MealViewModal({ date, menu, onClose }) {
   const dayName = DAY_NAMES[date.getDay()];
   const dateStr = formatDate(date);
@@ -163,7 +120,7 @@ function MealViewModal({ date, menu, onClose }) {
         <div className="flex items-center justify-between p-5 border-b border-gray-100 bg-teal-600 text-black">
           <div>
             <p className="text-teal-100 text-sm font-medium mb-1">Chi tiết thực đơn</p>
-            <h3 className="text-2xl font-bold flex items-center gap-2">
+            <h3 className="text-2xl font-bold flex items-center gap-2 text-white">
               {dayName}, {dateStr}
             </h3>
           </div>
@@ -175,7 +132,7 @@ function MealViewModal({ date, menu, onClose }) {
           </button>
         </div>
         <div className="p-6 overflow-y-auto flex-1 bg-gray-50/50">
-          <MenuDayCardReadOnly date={date} menu={menu} />
+          <MenuDayCardReadOnly menu={menu} />
         </div>
       </div>
     </div>
@@ -184,13 +141,68 @@ function MealViewModal({ date, menu, onClose }) {
 
 // --- MAIN COMPONENT ---
 
-export default function MenuPage() {
+export default function MenuParentPage() {
   const [selectedWeek, setSelectedWeek] = useState(new Date()); 
   const [selectedViewDate, setSelectedViewDate] = useState(new Date()); 
   const [isModalOpen, setIsModalOpen] = useState(false);
   
-  const todayMenu = getMenuForDate(new Date());
+  // State chứa dữ liệu API
+  const [menuData, setMenuData] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+
   const weekDays = getWeekDays(selectedWeek);
+
+  // --- API FETCHING ---
+  const fetchMenuData = async () => {
+    setIsLoading(true);
+    try {
+        const response = await axios.get(API_BASE_URL);
+        const rawData = response.data; // List<MenuGroupResponse>
+        
+        const newMenuData = {};
+
+        rawData.forEach(group => {
+            const dateKey = group.menuDay; // "08/12/2025" (DD/MM/YYYY)
+            if (!newMenuData[dateKey]) newMenuData[dateKey] = {};
+
+            group.menus.forEach(menuItem => {
+                let mealKey = menuItem.meal.toLowerCase();
+                if (menuItem.meal === "Breakfast") mealKey = "breakfast";
+                else if (menuItem.meal === "Lunch") mealKey = "lunch";
+                else if (menuItem.meal === "Afternoon Snack") mealKey = "afternoon_snack";
+                else if (menuItem.meal === "Morning Snack") mealKey = "morning_snack";
+
+                // Map Dishes
+                const mappedDishes = menuItem.dishes.map(d => ({
+                    id: d.id,
+                    name: d.name,        
+                    foodGroup: d.nutrients || "Khác", 
+                    allergyNote: d.allergy || ""      
+                }));
+
+                newMenuData[dateKey][mealKey] = mappedDishes;
+            });
+        });
+
+        setMenuData(newMenuData);
+    } catch (error) {
+        console.error("Lỗi khi tải thực đơn:", error);
+    } finally {
+        setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchMenuData();
+  }, []);
+
+  // Lấy menu của một ngày cụ thể từ State
+  const getMenuForDate = (date) => {
+    const key = getDateKey(date); // DD/MM/YYYY
+    return menuData[key] || {};
+  };
+
+  const todayMenu = getMenuForDate(new Date());
 
   const handleDayClick = (date) => {
     setSelectedViewDate(date);
@@ -209,48 +221,12 @@ export default function MenuPage() {
     <div className="min-h-screen bg-gray-50/50">
       {/* CSS Styles nội bộ */}
       <style>{`
-        .custom-calendar-grid {
-          display: grid;
-          grid-template-columns: repeat(7, 1fr);
-          gap: 1rem;
-          width: 100%;
-        }
-        .day-box {
-          height: 160px;
-          width: 100%;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          border-radius: 1rem;
-          border: 2px solid transparent;
-          transition: all 0.2s ease;
-          cursor: pointer;
-          position: relative;
-        }
-        .day-box-normal {
-          background-color: white;
-          border-color: #e5e7eb;
-          color: #4b5563;
-        }
-        .day-box-normal:hover {
-          border-color: #2dd4bf;
-          background-color: #f0fdfa;
-          transform: translateY(-4px); 
-          box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-          z-index: 10;
-        }
-        .day-box-today {
-          background-color: #0d9488;
-          border-color: #0d9488;
-          color: white;
-          box-shadow: 0 10px 15px -3px rgba(13, 148, 136, 0.3);
-          transform: scale(1.05);
-          z-index: 20;
-        }
-        .day-box-today:hover {
-          background-color: #0f766e;
-        }
+        .custom-calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1rem; width: 100%; }
+        .day-box { height: 160px; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 1rem; border: 2px solid transparent; transition: all 0.2s ease; cursor: pointer; position: relative; }
+        .day-box-normal { background-color: white; border-color: #e5e7eb; color: #4b5563; }
+        .day-box-normal:hover { border-color: #2dd4bf; background-color: #f0fdfa; transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); z-index: 10; }
+        .day-box-today { background-color: #0d9488; border-color: #0d9488; color: white; box-shadow: 0 10px 15px -3px rgba(13, 148, 136, 0.3); transform: scale(1.05); z-index: 20; }
+        .day-box-today:hover { background-color: #0f766e; }
       `}</style>
 
       <Header />
@@ -271,21 +247,13 @@ export default function MenuPage() {
               </p>
             </div>
 
-            {/* THANH ĐIỀU HƯỚNG GỌN GÀNG */}
+            {/* THANH ĐIỀU HƯỚNG */}
             <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-xl w-fit border border-gray-100 self-start md:self-auto">
-              <button 
-                onClick={() => navigateWeek('prev')} 
-                className="p-2 hover:bg-white hover:shadow-sm rounded-lg text-gray-600 transition-all hover:text-teal-600"
-              >
+              <button onClick={() => navigateWeek('prev')} className="p-2 hover:bg-white hover:shadow-sm rounded-lg text-gray-600 transition-all hover:text-teal-600">
                 <ChevronLeft className="w-6 h-6" />
               </button>
-              
               <div className="w-px h-6 bg-gray-200"></div>
-
-              <button 
-                onClick={() => navigateWeek('next')} 
-                className="p-2 hover:bg-white hover:shadow-sm rounded-lg text-gray-600 transition-all hover:text-teal-600"
-              >
+              <button onClick={() => navigateWeek('next')} className="p-2 hover:bg-white hover:shadow-sm rounded-lg text-gray-600 transition-all hover:text-teal-600">
                 <ChevronRight className="w-6 h-6" />
               </button>
             </div>
@@ -307,7 +275,6 @@ export default function MenuPage() {
                     <span className={`text-sm font-bold uppercase mb-2 ${isCurrentDay ? 'text-teal-100' : 'text-gray-400'}`}>
                       {dayName.replace("Chủ Nhật", "CN")}
                     </span>
-                    
                     <span className="text-5xl font-extrabold tracking-tighter">
                       {day.getDate()}
                     </span>
@@ -332,8 +299,15 @@ export default function MenuPage() {
             </div>
           </div>
           
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 md:p-8">
-             <MenuDayCardReadOnly date={new Date()} menu={todayMenu} />
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 md:p-8 min-h-[200px]">
+             {isLoading ? (
+                <div className="flex flex-col items-center justify-center h-full py-10 text-gray-400">
+                    <Loader2 className="w-8 h-8 animate-spin mb-2 text-teal-500"/>
+                    <p>Đang tải thực đơn...</p>
+                </div>
+             ) : (
+                <MenuDayCardReadOnly menu={todayMenu} />
+             )}
           </div>
         </div>
       </div>

@@ -1,183 +1,182 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
-import { User, Phone, Mail, MapPin, Users, Heart, Pill, Utensils, Moon, Smile, Eye, Edit2 } from "lucide-react";
+import { User, Phone, Mail, MapPin, Heart, Pill, Smile, Star, Activity, Loader2, Calendar } from "lucide-react";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
+// 1. IMPORT CONTEXT
+import { useStudent } from "../contexts/StudentContext";
 
 export default function StudentInformation() {
-  const [isEditing, setIsEditing] = useState(false);
-  const [activeTab, setActiveTab] = useState("contact"); // 'contact' | 'health' | 'notes'
-  const [isSaving, setIsSaving] = useState(false);
+  const navigate = useNavigate();
+  const { selectedStudent } = useStudent(); 
 
-  // Mock data - sẽ thay thế bằng API call sau
-  const [studentData, setStudentData] = useState({
-    // Thông tin cơ bản (chỉ xem)
-    fullName: "Lê Đình Thuận",
-    dateOfBirth: "13/12/2020",
-    gender: "Nam",
-    age: 4,
-    class: "Lá 3 (Lớp tăng cường Tiếng Anh)",
-    
-    // Thông tin liên hệ (có thể chỉnh sửa)
-    phone: "0901234567",
-    email: "phuhuynh@example.com",
-    address: "123/15 Đường 67, phường 89, Quận 10, TP.HCM",
-    pickupPerson: "Lê Đình Công",
-    
-    // Thông tin sức khỏe (có thể chỉnh sửa)
-    allergies: "Không có",
-    chronicDiseases: "Không có",
-    medications: "Không có",
-    healthStatus: "Tốt",
-    
-    // Ghi chú thêm (có thể chỉnh sửa)
-    eatingHabits: "Ăn uống bình thường, thích ăn rau củ",
-    sleepHabits: "Ngủ đúng giờ, 8-9 tiếng/ngày",
-    personality: "Hoạt bát, thân thiện, thích vẽ tranh",
-  });
+  const [activeTab, setActiveTab] = useState("contact"); 
+  const [isLoading, setIsLoading] = useState(true);
+  const [studentData, setStudentData] = useState(null);
 
-  const handleInputChange = (field, value) => {
-    setStudentData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
+  useEffect(() => {
+    let targetId = selectedStudent?.id;
 
-  const handleSave = async () => {
-    // Validation
-    if (studentData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(studentData.email)) {
-      toast.error("Vui lòng nhập địa chỉ email hợp lệ");
-      return;
-    }
-    
-    if (studentData.phone && !/^[0-9]{10,11}$/.test(studentData.phone.replace(/\s/g, ""))) {
-      toast.error("Vui lòng nhập số điện thoại hợp lệ (10-11 chữ số)");
-      return;
+    if (!targetId) {
+       const saved = localStorage.getItem("selectedStudent");
+       if (saved) {
+          targetId = JSON.parse(saved).id;
+       } 
     }
 
-    setIsSaving(true);
-    
-    try {
-      // TODO: Gọi API để lưu thông tin
-      // const response = await fetch("http://localhost:8080/student/update", {
-      //   method: "PUT",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      //   body: JSON.stringify(studentData),
-      // });
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // TODO: Gửi thông báo cho giáo viên
-      // await fetch("http://localhost:8080/notifications/teacher", {
-      //   method: "POST",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      //   body: JSON.stringify({
-      //     message: `Phụ huynh đã cập nhật thông tin cho học sinh ${studentData.fullName}`,
-      //     studentId: studentData.id,
-      //   }),
-      // });
-      
-      setIsEditing(false);
-      setIsSaving(false);
-      toast.success("Đã cập nhật thông tin thành công! Giáo viên phụ trách đã được thông báo về thay đổi này.");
-    } catch (error) {
-      console.error("Error saving student information:", error);
-      setIsSaving(false);
-      toast.error("Lỗi khi lưu thông tin. Vui lòng thử lại.");
+    if (!targetId) {
+        setIsLoading(false);
+        return; 
     }
-  };
 
-  const handleEdit = () => {
-    setIsEditing(true);
-  };
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch(`https://bk-kindergarten.fly.dev/api/children/${targetId}`, {
+          method: 'GET',
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
 
-  const handleCancel = () => {
-    setIsEditing(false);
-    // TODO: Reload data from API to reset changes
-    toast.info("Đã hủy chỉnh sửa");
-  };
+        if (!response.ok) throw new Error("Không thể tải dữ liệu");
+        
+        const data = await response.json();
 
-  // Tính tuổi từ ngày sinh
+        // Format ngày sinh
+        const formattedDob = data.dob ? data.dob.split('-').reverse().join('/') : "Chưa cập nhật";
+
+        // Map dữ liệu
+        setStudentData({
+          id: data.id,
+          fullName: data.name,
+          dateOfBirth: formattedDob,
+          gender: data.sex,
+          healthStatus: data.health_status,
+          
+          parentName: data.parent_name || "Chưa cập nhật",
+          parentPhone: data.parent_phone || "Chưa cập nhật",
+          parentEmail: data.parent_email || "Chưa cập nhật",
+          parentAddress: data.parent_address || "Chưa cập nhật",
+
+          allergies: data.allergy || "Không có",
+          medicalHistory: data.medical_history || "Không có",
+          specialNotes: data.medical_issue || "Không có",
+
+          habit: data.habit || "Chưa cập nhật",
+          character: data.character || "Chưa cập nhật"
+        });
+      } catch (error) {
+        console.error("Error:", error);
+        toast.error("Lỗi khi tải thông tin học sinh");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
+  }, [selectedStudent]); // Chạy lại khi selectedStudent thay đổi
+
   const calculateAge = (dateOfBirth) => {
+    if(!dateOfBirth) return 0;
+    const parts = dateOfBirth.split("/");
+    if(parts.length !== 3) return 0;
+    const birthDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
     const today = new Date();
-    const birthDate = new Date(dateOfBirth.split("/").reverse().join("-"));
     let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    if (today.getMonth() < birthDate.getMonth() || (today.getMonth() === birthDate.getMonth() && today.getDate() < birthDate.getDate())) {
       age--;
     }
     return age;
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex flex-col">
+        <Header />
+        <div className="flex-1 flex items-center justify-center">
+          <Loader2 className="w-10 h-10 animate-spin text-teal-600" />
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!studentData) {
+     return (
+        <div className="min-h-screen bg-gray-100 flex flex-col">
+            <Header />
+            <div className="flex-1 flex items-center justify-center text-gray-500">
+                Vui lòng chọn học sinh để xem thông tin.
+            </div>
+            <Footer />
+        </div>
+     )
+  }
 
   return (
     <div className="min-h-screen bg-gray-100">
       <Header />
       
       <div className="flex flex-row gap-6 px-4 py-8 max-w-7xl mx-auto">
-        {/* Left Sidebar - Student Photo (1/5 width) */}
+        {/* Left Sidebar */}
         <div className="w-1/5 min-w-[200px] flex-shrink-0">
-          <div className="bg-white rounded-xl p-6 border border-blue-200 sticky top-24">
+          <div className="bg-white rounded-xl p-6 border border-blue-200 sticky top-24 shadow-sm">
             <div className="flex flex-col items-center">
-              {/* Avatar Placeholder */}
-              <div className="w-32 h-32 bg-gray-200 rounded-full flex items-center justify-center mb-4">
-                <User className="w-16 h-16 text-gray-700" />
+              <div className="w-32 h-32 bg-gray-200 rounded-full flex items-center justify-center mb-4 border-4 border-white shadow">
+                <User className="w-16 h-16 text-gray-400" />
               </div>
-              <p className="text-sm text-gray-600 mb-2">Ảnh</p>
+              <p className="text-xs text-gray-500 mb-1">Hồ sơ học sinh</p>
               <h3 className="text-xl font-bold text-gray-900 mb-1 text-center">
                 {studentData.fullName}
               </h3>
-              <p className="text-gray-600 mb-2">{calculateAge(studentData.dateOfBirth)} tuổi</p>
-              <p className="text-sm text-gray-500 mb-4">
-                Tình trạng: <span className="font-semibold text-green-600">{studentData.healthStatus}</span>
-              </p>
-              {/* Blue divider line */}
-              <div className="w-full border-t border-blue-300 mt-2"></div>
               
-              {/* View/Edit Mode Indicator */}
+              <div className="flex items-center gap-2 text-gray-600 mb-2 text-sm">
+                <Calendar className="w-3 h-3"/> {studentData.dateOfBirth}
+              </div>
+              <p className="text-gray-600 mb-2 font-medium">{calculateAge(studentData.dateOfBirth)} tuổi - {studentData.gender}</p>
+              
+              <div className="px-3 py-1 rounded-full bg-green-100 text-green-700 text-sm font-semibold mb-4">
+                {studentData.healthStatus}
+              </div>
+
+              <div className="w-full border-t border-gray-100 mt-2"></div>
+              
               <div className="mt-4 w-full">
-                {isEditing ? (
-                  <div className="flex items-center gap-2 text-orange-600 text-sm font-medium">
-                    <Edit2 className="w-4 h-4" />
-                    Chế độ chỉnh sửa
+                  <div className="flex items-center justify-center gap-2 text-gray-500 text-sm font-medium">
+                    <Activity className="w-4 h-4" /> Chế độ xem
                   </div>
-                ) : (
-                  <div className="flex items-center gap-2 text-gray-600 text-sm font-medium">
-                    <Eye className="w-4 h-4" />
-                    Chế độ xem
-                  </div>
-                )}
               </div>
             </div>
           </div>
         </div>
 
-        {/* Right Section - Student Information (4/5 width) */}
+        {/* Right Section */}
         <div className="flex-1 w-full md:w-4/5 min-w-0 space-y-6">
           {/* Info Banner */}
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-            <p className="text-sm text-blue-800">
-              <strong>Lưu ý:</strong> Bạn có thể cập nhật thông tin liên hệ, sức khỏe và ghi chú của con mình. 
-              Sau khi lưu, giáo viên phụ trách sẽ nhận được thông báo về các thay đổi này.
-            </p>
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex gap-3 items-start">
+            <div className="mt-1"><Activity className="w-5 h-5 text-blue-600"/></div>
+            <div>
+                <p className="text-sm text-blue-800">
+                <strong>Thông tin chi tiết:</strong> Dưới đây là thông tin hồ sơ của trẻ được lưu trữ trên hệ thống. 
+                Vui lòng liên hệ nhà trường nếu cần cập nhật thông tin.
+                </p>
+            </div>
           </div>
 
           {/* Tab Navigation */}
-          <div className="bg-white rounded-xl p-4 border border-blue-200">
+          <div className="bg-white rounded-xl p-2 border border-blue-200 shadow-sm inline-block w-full">
             <div className="flex gap-2 flex-wrap">
               <button
                 onClick={() => setActiveTab("contact")}
                 className={`flex items-center gap-2 px-6 py-3 rounded-lg transition-colors font-medium ${
                   activeTab === "contact"
                     ? "bg-teal-500 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    : "bg-gray-50 text-gray-600 hover:bg-gray-100"
                 }`}
               >
-                <Phone className="w-5 h-5" />
+                <Phone className="w-4 h-4" />
                 Thông tin liên hệ
               </button>
               <button
@@ -185,95 +184,72 @@ export default function StudentInformation() {
                 className={`flex items-center gap-2 px-6 py-3 rounded-lg transition-colors font-medium ${
                   activeTab === "health"
                     ? "bg-teal-500 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    : "bg-gray-50 text-gray-600 hover:bg-gray-100"
                 }`}
               >
-                <Heart className="w-5 h-5" />
-                Thông tin sức khỏe
+                <Heart className="w-4 h-4" />
+                Sức khỏe
               </button>
               <button
                 onClick={() => setActiveTab("notes")}
                 className={`flex items-center gap-2 px-6 py-3 rounded-lg transition-colors font-medium ${
                   activeTab === "notes"
                     ? "bg-teal-500 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    : "bg-gray-50 text-gray-600 hover:bg-gray-100"
                 }`}
               >
-                <Smile className="w-5 h-5" />
-                Ghi chú thêm
+                <Smile className="w-4 h-4" />
+                Sở thích & Tính cách
               </button>
             </div>
           </div>
 
-          {/* Card 1: Thông tin liên hệ */}
+          {/* Card 1: Thông tin liên hệ (Phụ huynh) */}
           {activeTab === "contact" && (
-            <div className="bg-white rounded-xl p-6 border border-blue-200">
-              <h2 className="text-3xl mb-6 underline" style={{ color: '#19C1B6', fontWeight: 900 }}>
-                Thông tin liên hệ:
+            <div className="bg-white rounded-xl p-6 border border-blue-200 shadow-sm">
+              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2" style={{ color: '#19C1B6' }}>
+                <User className="w-6 h-6" />
+                Thông tin phụ huynh / Người giám hộ
               </h2>
               <div className="space-y-4">
-                {/* Số điện thoại */}
+                {/* Họ tên phụ huynh */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                    <Phone className="w-4 h-4" />
-                    Số điện thoại:
-                  </label>
-                  <input
-                    type="tel"
-                    value={studentData.phone}
-                    onChange={(e) => handleInputChange("phone", e.target.value)}
-                    disabled={!isEditing}
-                    placeholder="Nhập số điện thoại"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
-                  />
+                  <label className="text-sm text-gray-500 block mb-1">Họ tên phụ huynh</label>
+                  <div className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 font-medium">
+                    {studentData.parentName}
+                  </div>
                 </div>
 
-                {/* Email */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                    <Mail className="w-4 h-4" />
-                    Email:
-                  </label>
-                  <input
-                    type="email"
-                    value={studentData.email}
-                    onChange={(e) => handleInputChange("email", e.target.value)}
-                    disabled={!isEditing}
-                    placeholder="Nhập địa chỉ email"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Số điện thoại */}
+                    <div>
+                    <label className="text-sm text-gray-500 block mb-1 flex items-center gap-1">
+                        <Phone className="w-3 h-3" /> Số điện thoại
+                    </label>
+                    <div className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900">
+                        {studentData.parentPhone}
+                    </div>
+                    </div>
+
+                    {/* Email */}
+                    <div>
+                    <label className="text-sm text-gray-500 block mb-1 flex items-center gap-1">
+                        <Mail className="w-3 h-3" /> Email
+                    </label>
+                    <div className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900">
+                        {studentData.parentEmail}
+                    </div>
+                    </div>
                 </div>
 
                 {/* Địa chỉ */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                    <MapPin className="w-4 h-4" />
-                    Địa chỉ:
+                  <label className="text-sm text-gray-500 block mb-1 flex items-center gap-1">
+                    <MapPin className="w-3 h-3" /> Địa chỉ liên hệ
                   </label>
-                  <textarea
-                    value={studentData.address}
-                    onChange={(e) => handleInputChange("address", e.target.value)}
-                    disabled={!isEditing}
-                    rows={3}
-                    placeholder="Nhập địa chỉ đầy đủ"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 disabled:bg-gray-100 disabled:cursor-not-allowed resize-none"
-                  />
-                </div>
-
-                {/* Người đón trẻ */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                    <Users className="w-4 h-4" />
-                    Người đón trẻ:
-                  </label>
-                  <input
-                    type="text"
-                    value={studentData.pickupPerson}
-                    onChange={(e) => handleInputChange("pickupPerson", e.target.value)}
-                    disabled={!isEditing}
-                    placeholder="Nhập tên người đón trẻ"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
-                  />
+                  <div className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900">
+                    {studentData.parentAddress}
+                  </div>
                 </div>
               </div>
             </div>
@@ -281,164 +257,76 @@ export default function StudentInformation() {
 
           {/* Card 2: Thông tin sức khỏe */}
           {activeTab === "health" && (
-            <div className="bg-white rounded-xl p-6 border border-blue-200">
-              <h2 className="text-3xl mb-6 underline" style={{ color: '#19C1B6', fontWeight: 900 }}>
-                Thông tin sức khỏe:
+            <div className="bg-white rounded-xl p-6 border border-blue-200 shadow-sm">
+              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2" style={{ color: '#19C1B6' }}>
+                <Heart className="w-6 h-6" />
+                Thông tin sức khỏe & Y tế
               </h2>
               <div className="space-y-4">
                 {/* Dị ứng */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                    <Heart className="w-4 h-4" />
-                    Dị ứng:
+                  <label className="text-sm text-gray-500 block mb-1 flex items-center gap-1">
+                    <Activity className="w-3 h-3 text-red-400" /> Dị ứng (Thức ăn/Thuốc)
                   </label>
-                  <textarea
-                    value={studentData.allergies}
-                    onChange={(e) => handleInputChange("allergies", e.target.value)}
-                    disabled={!isEditing}
-                    rows={3}
-                    placeholder="Nhập thông tin dị ứng (nếu có)"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 disabled:bg-gray-100 disabled:cursor-not-allowed resize-none"
-                  />
+                  <div className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 min-h-[60px]">
+                    {studentData.allergies}
+                  </div>
                 </div>
 
-                {/* Bệnh mãn tính */}
+                {/* Tiền sử bệnh */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                    <Heart className="w-4 h-4" />
-                    Bệnh mãn tính:
+                  <label className="text-sm text-gray-500 block mb-1 flex items-center gap-1">
+                    <Activity className="w-3 h-3" /> Tiền sử bệnh
                   </label>
-                  <textarea
-                    value={studentData.chronicDiseases}
-                    onChange={(e) => handleInputChange("chronicDiseases", e.target.value)}
-                    disabled={!isEditing}
-                    rows={3}
-                    placeholder="Nhập thông tin bệnh mãn tính (nếu có)"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 disabled:bg-gray-100 disabled:cursor-not-allowed resize-none"
-                  />
+                  <div className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 min-h-[60px]">
+                    {studentData.medicalHistory}
+                  </div>
                 </div>
 
-                {/* Thuốc đang sử dụng */}
+                {/* Vấn đề y tế hiện tại (Ghi chú đặc biệt) */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                    <Pill className="w-4 h-4" />
-                    Thuốc đang sử dụng:
+                  <label className="text-sm text-gray-500 block mb-1 flex items-center gap-1">
+                    <Pill className="w-3 h-3" /> Vấn đề y tế hiện tại / Ghi chú thuốc
                   </label>
-                  <textarea
-                    value={studentData.medications}
-                    onChange={(e) => handleInputChange("medications", e.target.value)}
-                    disabled={!isEditing}
-                    rows={3}
-                    placeholder="Nhập thông tin thuốc đang sử dụng (nếu có)"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 disabled:bg-gray-100 disabled:cursor-not-allowed resize-none"
-                  />
+                  <div className="w-full px-4 py-3 bg-yellow-50 border border-yellow-200 rounded-lg text-gray-900 min-h-[60px]">
+                    {studentData.specialNotes}
+                  </div>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Card 3: Ghi chú thêm */}
+          {/* Card 3: Ghi chú thêm (Sở thích & Tính cách) */}
           {activeTab === "notes" && (
-            <div className="bg-white rounded-xl p-6 border border-blue-200">
-              <h2 className="text-3xl mb-6 underline" style={{ color: '#19C1B6', fontWeight: 900 }}>
-                Ghi chú thêm:
+            <div className="bg-white rounded-xl p-6 border border-blue-200 shadow-sm">
+              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2" style={{ color: '#19C1B6' }}>
+                <Smile className="w-6 h-6" />
+                Đặc điểm của trẻ
               </h2>
               <div className="space-y-4">
-                {/* Thói quen ăn uống */}
+                {/* Sở thích */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                    <Utensils className="w-4 h-4" />
-                    Thói quen ăn uống:
+                  <label className="text-sm text-gray-500 block mb-1 flex items-center gap-1">
+                    <Star className="w-3 h-3" /> Sở thích / Thói quen
                   </label>
-                  <textarea
-                    value={studentData.eatingHabits}
-                    onChange={(e) => handleInputChange("eatingHabits", e.target.value)}
-                    disabled={!isEditing}
-                    rows={3}
-                    placeholder="Nhập thông tin về thói quen ăn uống của trẻ"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 disabled:bg-gray-100 disabled:cursor-not-allowed resize-none"
-                  />
-                </div>
-
-                {/* Giấc ngủ */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                    <Moon className="w-4 h-4" />
-                    Giấc ngủ:
-                  </label>
-                  <textarea
-                    value={studentData.sleepHabits}
-                    onChange={(e) => handleInputChange("sleepHabits", e.target.value)}
-                    disabled={!isEditing}
-                    rows={3}
-                    placeholder="Nhập thông tin về giấc ngủ của trẻ"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 disabled:bg-gray-100 disabled:cursor-not-allowed resize-none"
-                  />
+                  <div className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 min-h-[80px]">
+                    {studentData.habit}
+                  </div>
                 </div>
 
                 {/* Tính cách */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                    <Smile className="w-4 h-4" />
-                    Tính cách của trẻ:
+                  <label className="text-sm text-gray-500 block mb-1 flex items-center gap-1">
+                    <Smile className="w-3 h-3" /> Tính cách
                   </label>
-                  <textarea
-                    value={studentData.personality}
-                    onChange={(e) => handleInputChange("personality", e.target.value)}
-                    disabled={!isEditing}
-                    rows={3}
-                    placeholder="Nhập thông tin về tính cách của trẻ"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 disabled:bg-gray-100 disabled:cursor-not-allowed resize-none"
-                  />
+                  <div className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 min-h-[80px]">
+                    {studentData.character}
+                  </div>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Action Buttons */}
-          <div className="flex gap-4 justify-end mt-6">
-            {isEditing ? (
-              <>
-                <button
-                  onClick={handleCancel}
-                  disabled={isSaving}
-                  className="px-8 py-3 rounded-lg transition-colors font-medium text-base hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{ backgroundColor: '#D4D4D4', color: 'black' }}
-                  onMouseEnter={(e) => !isSaving && (e.target.style.backgroundColor = '#C4C4C4')}
-                  onMouseLeave={(e) => !isSaving && (e.target.style.backgroundColor = '#D4D4D4')}
-                >
-                  Hủy
-                </button>
-                <button
-                  onClick={handleSave}
-                  disabled={isSaving}
-                  className="px-8 py-3 rounded-lg transition-colors font-medium text-base hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                  style={{ backgroundColor: '#FEA439', color: 'black' }}
-                  onMouseEnter={(e) => !isSaving && (e.target.style.backgroundColor = '#E89223')}
-                  onMouseLeave={(e) => !isSaving && (e.target.style.backgroundColor = '#FEA439')}
-                >
-                  {isSaving ? (
-                    <>
-                      <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
-                      Đang lưu...
-                    </>
-                  ) : (
-                    "Lưu những thay đổi"
-                  )}
-                </button>
-              </>
-            ) : (
-              <button
-                onClick={handleEdit}
-                className="px-8 py-3 rounded-lg transition-colors font-medium text-base hover:opacity-90"
-                style={{ backgroundColor: '#D4D4D4', color: 'black' }}
-                onMouseEnter={(e) => e.target.style.backgroundColor = '#C4C4C4'}
-                onMouseLeave={(e) => e.target.style.backgroundColor = '#D4D4D4'}
-              >
-                Chỉnh sửa
-              </button>
-            )}
-          </div>
         </div>
       </div>
 
