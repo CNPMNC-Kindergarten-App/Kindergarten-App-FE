@@ -45,7 +45,7 @@ export function StudentSelection({ parentId, onSelectStudent }) {
         {
           id: 2,
           name: "Nguyễn Hoàng Long",
-          sex: "Male",
+          sex: "Nam",
           dob: "2020-09-20",
           habit: "Thích đá banh",
           character: "Năng động",
@@ -131,7 +131,7 @@ export function StudentSelection({ parentId, onSelectStudent }) {
                 {/* HEADER CARD */}
                 <div
                   className={`${
-                    student.sex === "Male"
+                    student.sex === "Nam"
                       ? "bg-gradient-to-br from-blue-400 to-blue-600"
                       : "bg-gradient-to-br from-pink-400 to-pink-600"
                   } p-6 text-white relative`}
@@ -144,7 +144,7 @@ export function StudentSelection({ parentId, onSelectStudent }) {
                     <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mb-4 shadow-lg">
                       <User
                         className={`w-12 h-12 ${
-                          student.sex === "Male"
+                          student.sex === "Nam"
                             ? "text-blue-600"
                             : "text-pink-600"
                         }`}
@@ -159,12 +159,12 @@ export function StudentSelection({ parentId, onSelectStudent }) {
                   <div className="flex items-start gap-3">
                     <div
                       className={`p-2 rounded-lg ${
-                        student.sex === "Male" ? "bg-blue-50" : "bg-pink-50"
+                        student.sex === "Nam" ? "bg-blue-50" : "bg-pink-50"
                       }`}
                     >
                       <Calendar
                         className={`w-5 h-5 ${
-                          student.sex === "Male"
+                          student.sex === "Nam"
                             ? "text-blue-600"
                             : "text-pink-600"
                         }`}
@@ -184,12 +184,12 @@ export function StudentSelection({ parentId, onSelectStudent }) {
                   <div className="flex items-start gap-3">
                     <div
                       className={`p-2 rounded-lg ${
-                        student.sex === "Male" ? "bg-blue-50" : "bg-pink-50"
+                        student.sex === "Nam" ? "bg-blue-50" : "bg-pink-50"
                       }`}
                     >
                       <Smile
                         className={`w-5 h-5 ${
-                          student.sex === "Male"
+                          student.sex === "Nam"
                             ? "text-blue-600"
                             : "text-pink-600"
                         }`}
@@ -204,12 +204,12 @@ export function StudentSelection({ parentId, onSelectStudent }) {
                   <div className="flex items-start gap-3">
                     <div
                       className={`p-2 rounded-lg ${
-                        student.sex === "Male" ? "bg-blue-50" : "bg-pink-50"
+                        student.sex === "Nam" ? "bg-blue-50" : "bg-pink-50"
                       }`}
                     >
                       <Heart
                         className={`w-5 h-5 ${
-                          student.sex === "Male"
+                          student.sex === "Nam"
                             ? "text-blue-600"
                             : "text-pink-600"
                         }`}
@@ -226,7 +226,7 @@ export function StudentSelection({ parentId, onSelectStudent }) {
                 <div className="px-6 pb-6">
                   <button
                     className={`w-full ${
-                      student.sex === "Male"
+                      student.sex === "Nam"
                         ? "bg-blue-600 hover:bg-blue-700"
                         : "bg-pink-600 hover:bg-pink-700"
                     } text-white py-3 rounded-lg transition-colors flex items-center justify-center gap-2 group-hover:gap-4 transition-all`}
