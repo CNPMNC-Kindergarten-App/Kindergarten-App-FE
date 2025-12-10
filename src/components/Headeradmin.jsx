@@ -69,13 +69,13 @@ export function Header() {
                 Thực đơn
               </Link>
 
-              <a
-                href="/AbsenceAdmin"
+              <Link
+                to="/AbsenceAdmin"
                 className="text-gray-700 hover:text-teal-500 hover:bg-gray-100 px-3 py-2 rounded-full transition-colors"
                 style={{ fontWeight: 600 }}
               >
                 Nộp đơn
-              </a>
+              </Link>
             </nav>
 
             {/* CTA Buttons */}
