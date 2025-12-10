@@ -162,11 +162,11 @@ export function AttendanceForm() {
                 onChange={(e) => setClassId(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="1">Lớp 10A1</option>
-                <option value="2">Lớp 10A2</option>
-                <option value="3">Lớp 10A3</option>
-                <option value="4">Lớp 11A1</option>
-                <option value="5">Lớp 12A1</option>
+                <option value="1">Lớp Lá</option>
+                <option value="2">Lớp Mầm</option>
+                <option value="3">Lớp Cành</option>
+                <option value="4">Lớp Cây</option>
+                <option value="5">Lớp Hoa</option>
               </select>
             </div>
           </div>

@@ -18,19 +18,48 @@ export default function AttendancePage() {
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // ✅ GET ĐIỂM DANH THEO CHILD ID
+  // ✅ GET ĐIỂM DANH THEO CHILD ID (MAP ĐÚNG THEO API BẠN GỬI)
   useEffect(() => {
     if (!childrenId) return;
 
-    const fetchAttendance = async () => {
-      try {
-        const res = await fetch(
-          `https://bk-kindergarten.fly.dev/api/attend/child/${childrenId}`
-        );
-        const data = await res.json();
-        setAttendanceData(data);
+      const fetchAttendance = async () => {
+        try {
+          const res = await fetch(
+            `https://bk-kindergarten.fly.dev/api/attend/child/${childrenId}`
+          );
+
+          const rawData = await res.json();
+
+                    const mappedData = Array.isArray(rawData)
+            ? rawData.map((item) => {
+                const statusRaw = item.status?.toLowerCase(); // ✅ Chuẩn hoá
+
+                let statusMapped = "absent-unexcused";
+
+                if (statusRaw === "present") statusMapped = "present";
+                else if (statusRaw === "absent") statusMapped = "absent-unexcused";
+                else if (statusRaw === "excused") statusMapped = "absent-excused";
+                else if (statusRaw === "late") statusMapped = "late";
+
+                return {
+                  id: item.id,
+                  classId: item.classId,
+                  date: item.attendDate,
+                  childId: item.child?.id,
+                  status: statusMapped,
+                  note: item.note || "",
+                };
+              })
+            : [];
+
+setAttendanceData(mappedData);
+
+
+setAttendanceData(mappedData);
+
       } catch (error) {
         console.error("Lỗi tải điểm danh:", error);
+        setAttendanceData([]);
       }
     };
 
@@ -46,7 +75,7 @@ export default function AttendancePage() {
     }
   };
 
-  // ✅ POST ĐƠN XIN PHÉP
+  // ✅ POST ĐƠN XIN PHÉP (ĐÚNG FORMAT BẠN ĐƯA)
   const handleSubmitRequest = async (reason) => {
     if (!selectedRecord || !childrenId) return;
 
@@ -58,21 +87,28 @@ export default function AttendancePage() {
     };
 
     try {
-      const res = await fetch("http://localhost:8080/absence/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
+      const res = await fetch(
+        "https://bk-kindergarten.fly.dev/api/absence/create",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        }
+      );
 
       if (!res.ok) throw new Error("Gửi đơn thất bại");
 
-      // ✅ CẬP NHẬT LẠI UI SAU KHI GỬI THÀNH CÔNG
+      // ✅ CẬP NHẬT UI NGAY
       setAttendanceData((prev) =>
         prev.map((record) =>
           record.id === selectedRecord.id
-            ? { ...record, status: "absent-excused", note: reason }
+            ? {
+                ...record,
+                status: "absent-excused",
+                note: reason,
+              }
             : record
         )
       );
@@ -111,7 +147,8 @@ export default function AttendancePage() {
                   {child?.name || "—"}
                 </p>
                 <p>
-                  <span className="text-gray-500">Lớp:</span> {child?.className || "—"}
+                  <span className="text-gray-500">Lớp:</span>{" "}
+                  {child?.className || "—"}
                 </p>
                 <p>
                   <span className="text-gray-500">Học kỳ:</span> Học kỳ I - Năm
@@ -134,36 +171,23 @@ export default function AttendancePage() {
         {/* View Mode Selector */}
         <div className="bg-white rounded-xl shadow-sm p-4 mb-6 border border-indigo-100">
           <div className="flex gap-2">
-            <button
-              onClick={() => setViewMode("day")}
-              className={`flex-1 py-3 px-4 rounded-lg transition-all ${
-                viewMode === "day"
-                  ? "bg-indigo-600 text-white shadow-md"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-            >
-              Theo Ngày
-            </button>
-            <button
-              onClick={() => setViewMode("week")}
-              className={`flex-1 py-3 px-4 rounded-lg transition-all ${
-                viewMode === "week"
-                  ? "bg-indigo-600 text-white shadow-md"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-            >
-              Theo Tuần
-            </button>
-            <button
-              onClick={() => setViewMode("month")}
-              className={`flex-1 py-3 px-4 rounded-lg transition-all ${
-                viewMode === "month"
-                  ? "bg-indigo-600 text-white shadow-md"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-            >
-              Theo Tháng
-            </button>
+            {["day", "week", "month"].map((mode) => (
+              <button
+                key={mode}
+                onClick={() => setViewMode(mode)}
+                className={`flex-1 py-3 px-4 rounded-lg transition-all ${
+                  viewMode === mode
+                    ? "bg-indigo-600 text-white shadow-md"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                {mode === "day"
+                  ? "Theo Ngày"
+                  : mode === "week"
+                  ? "Theo Tuần"
+                  : "Theo Tháng"}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -176,7 +200,8 @@ export default function AttendancePage() {
                 Có ngày vắng chưa xin phép
               </p>
               <p className="text-red-700 text-sm">
-                Vui lòng gửi đơn xin phép cho giáo viên để cập nhật lý do nghỉ học.
+                Vui lòng gửi đơn xin phép cho giáo viên để cập nhật lý do nghỉ
+                học.
               </p>
             </div>
           </div>
