@@ -4,10 +4,9 @@ import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import { X, Calendar, ChevronLeft, ChevronRight, Utensils, AlertTriangle, Loader2 } from "lucide-react";
 
-// --- CẤU HÌNH API ---
+
 const API_BASE_URL = "https://59vjl8w1-8080.asse.devtunnels.ms/api/v1/menus";
 
-// --- DỮ LIỆU CỐ ĐỊNH ---
 const MEALS = [
   { id: "breakfast", name: "Ăn sáng" },
   { id: "morning_snack", name: "Ăn phụ buổi sáng" },
@@ -17,12 +16,11 @@ const MEALS = [
 
 const DAY_NAMES = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
 
-// --- HELPER FUNCTIONS ---
+
 function formatDate(date) {
   return date.toLocaleDateString('vi-VN', { year: 'numeric', month: '2-digit', day: '2-digit' });
 }
 
-// Hàm này tạo key để tra cứu dữ liệu (Format: DD/MM/YYYY khớp với Backend)
 function getDateKey(date) {
   const d = new Date(date);
   const day = String(d.getDate()).padStart(2, '0');
@@ -79,7 +77,6 @@ function DishItemReadOnly({ dish }) {
 
 // === CARD HIỂN THỊ THỰC ĐƠN ===
 function MenuDayCardReadOnly({ menu }) {
-  // menu: Object { breakfast: [], lunch: [] ... }
   return (
     <div className="w-full">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -169,7 +166,6 @@ export default function MenuParentPage() {
             if (!newMenuData[dateKey]) newMenuData[dateKey] = {};
 
             group.menus.forEach(menuItem => {
-                // Chuẩn hóa key bữa ăn (Breakfast -> breakfast)
                 let mealKey = menuItem.meal.toLowerCase();
                 if (menuItem.meal === "Breakfast") mealKey = "breakfast";
                 else if (menuItem.meal === "Lunch") mealKey = "lunch";
