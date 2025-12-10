@@ -9,6 +9,7 @@ import Home from "./pages/home";
 import BangTin from "./pages/BangTin";
 import StudentInformation from "./pages/StudentInformation";
 import MenuPage from "./pages/MenuPage";
+import Form from "./pages/Form";
 
 import Homeadmin from "./pageadmin/homeadmin";
 import BangTinadmin from "./pageadmin/bangtinadmin";
@@ -115,6 +116,7 @@ export default function App() {
             <Route path="/bangtin" element={<BangTin />} />
             <Route path="/StudentInformation" element={<StudentInformation />} />
             <Route path="/menu" element={<MenuPage />} />
+            <Route path="/form" element={<Form />} />
           </>
         )}
 
