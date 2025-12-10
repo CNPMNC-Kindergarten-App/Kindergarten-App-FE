@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Calendar, User, FileText, StickyNote } from "lucide-react";
 import { Button } from "./button";
 
@@ -11,19 +11,33 @@ const ABSENCE_REASONS = [
 ];
 
 export function AbsenceForm({ children, onSubmit }) {
-  const child = children[0];
+  // ✅ LẤY ID TỪ LOCALSTORAGE
+  const childLS = JSON.parse(localStorage.getItem("selectedStudent"));
+  const childrenId = childLS?.id;
+
+  const child = children?.[0];
 
   const [formData, setFormData] = useState({
-    child_id: child?.id || 0,
+    child_id: childrenId || child?.id || 0,
     reason: "",
     start_date: "",
     end_date: "",
-    notes: "",
+    notes: "", // ✅ GIỮ UI – NHƯNG KHÔNG GỬI LÊN API
   });
 
   const [errors, setErrors] = useState({});
 
-  const handleSubmit = (e) => {
+  // ✅ ĐỒNG BỘ child_id KHI LOAD LẠI TRANG
+  useEffect(() => {
+    if (childrenId) {
+      setFormData((prev) => ({
+        ...prev,
+        child_id: childrenId,
+      }));
+    }
+  }, [childrenId]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const newErrors = {};
@@ -58,16 +72,46 @@ export function AbsenceForm({ children, onSubmit }) {
       return;
     }
 
-    onSubmit(formData);
+    // ✅ BODY ĐÚNG ĐỊNH DẠNG BE – KHÔNG GỬI NOTES
+    const payload = {
+      reason: formData.reason,
+      start_date: formData.start_date,
+      end_date: formData.end_date,
+      child_id: formData.child_id,
+    };
 
-    setFormData({
-      child_id: child?.id || 0,
-      reason: "",
-      start_date: "",
-      end_date: "",
-      notes: "",
-    });
-    setErrors({});
+    try {
+      const res = await fetch(
+        "https://bk-kindergarten.fly.dev/api/absence/create",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      if (!res.ok) {
+        throw new Error("POST absence failed");
+      }
+
+      // ✅ GỌI LẠI HÀM CHA (để reload list nếu có)
+      onSubmit && onSubmit(payload);
+
+      setFormData({
+        child_id: childrenId || child?.id || 0,
+        reason: "",
+        start_date: "",
+        end_date: "",
+        notes: "",
+      });
+
+      setErrors({});
+    } catch (err) {
+      console.error("Lỗi gửi đơn nghỉ:", err);
+      alert("Gửi đơn thất bại!");
+    }
   };
 
   const handleChange = (field, value) => {
@@ -107,7 +151,9 @@ export function AbsenceForm({ children, onSubmit }) {
             <User className="w-5 h-5 text-indigo-600" />
             <div>
               <p className="text-gray-600 text-sm">Học sinh</p>
-              <p className="text-gray-900">{child?.name}</p>
+              <p className="text-gray-900">
+                {childLS?.name || child?.name}
+              </p>
               <p className="text-gray-600 text-sm">{child?.class}</p>
             </div>
           </div>
@@ -216,22 +262,7 @@ export function AbsenceForm({ children, onSubmit }) {
           )}
         </div>
 
-        {/* Ghi chú */}
-        <div>
-          <label className="block text-gray-700 mb-2">
-            <StickyNote className="w-4 h-4 inline mr-2" />
-            Ghi chú bổ sung (không bắt buộc)
-          </label>
-          <textarea
-            value={formData.notes}
-            onChange={(e) =>
-              handleChange("notes", e.target.value)
-            }
-            placeholder="Thông tin thêm về tình trạng của con..."
-            rows={4}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
-          />
-        </div>
+        
 
         {/* Submit */}
         <Button

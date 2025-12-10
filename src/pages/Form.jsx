@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AbsenceForm } from "../components/AbsenceForm";
 import { AbsenceList } from "../components/AbsenceList";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/tabs";
@@ -7,55 +7,49 @@ import { Footer } from "../components/Footer";
 import { FileText } from "lucide-react";
 
 export default function Form() {
-  const [children] = useState([
-    { id: 6, name: "Nguyễn Minh An", class: "Lớp Mầm" },
-  ]);
+  // ✅ LẤY CHILD TỪ LOCALSTORAGE
+  const child = JSON.parse(localStorage.getItem("selectedStudent"));
+  const childrenId = child?.id;
 
-  const [absences, setAbsences] = useState([
-    {
-      absenceId: 1,
-      reason: "Sốt cao",
-      childName: "Nguyễn Minh An",
-      status: "WAITING",
-      start_date: "2025-12-10",
-      end_date: "2025-12-11",
-      notes: "Đã đi khám bác sĩ",
-    },
-    {
-      absenceId: 2,
-      reason: "Về quê",
-      childName: "Nguyễn Minh An",
-      status: "ACCEPTED",
-      start_date: "2025-12-05",
-      end_date: "2025-12-07",
-    },
-  ]);
-
+  const [absences, setAbsences] = useState([]);
   const [activeTab, setActiveTab] = useState("form");
 
-  const handleAbsenceSubmit = (formData) => {
-    const child = children.find((c) => c.id === formData.child_id);
+  // ✅ GỌI API GET
+  const fetchAbsences = async () => {
+    try {
+      const res = await fetch(
+        `https://bk-kindergarten.fly.dev/api/get?child_id=${childrenId}`
+      );
+      const data = await res.json();
 
-    const newAbsence = {
-      absenceId: Date.now(),
-      reason: formData.reason,
-      childName: child?.name || "",
-      status: "WAITING",
-      start_date: formData.start_date,
-      end_date: formData.end_date,
-      notes: formData.notes,
-    };
+      const list = Array.isArray(data) ? data : [data];
+      setAbsences(list);
+    } catch (err) {
+      console.error("GET absence error:", err);
+    }
+  };
 
-    setAbsences((prev) => [newAbsence, ...prev]);
+  useEffect(() => {
+    if (childrenId) fetchAbsences();
+  }, [childrenId]);
+
+  // ✅ SAU KHI POST XONG → REFRESH LIST + CHUYỂN TAB
+  const handleAbsenceSubmit = () => {
+    fetchAbsences();
     setActiveTab("pending");
   };
 
-  const pendingAbsences = absences.filter((a) => a.status === "WAITING");
-  const approvedAbsences = absences.filter((a) => a.status === "ACCEPTED");
+  const pendingAbsences = absences.filter(
+    (a) => a.status === "WAITING"
+  );
+  const approvedAbsences = absences.filter(
+    (a) => a.status === "ACCEPTED"
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
-        <Header />
+      <Header />
+
       <div className="container max-w-4xl mx-auto px-4 py-8">
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
           <div className="flex items-center gap-3">
@@ -71,9 +65,14 @@ export default function Form() {
           </div>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="space-y-6"
+        >
           <TabsList className="grid w-full grid-cols-3 bg-white p-1 rounded-lg shadow-sm">
             <TabsTrigger value="form">Tạo đơn mới</TabsTrigger>
+
             <TabsTrigger value="pending">
               Đã gửi
               {pendingAbsences.length > 0 && (
@@ -82,24 +81,25 @@ export default function Form() {
                 </span>
               )}
             </TabsTrigger>
+
             <TabsTrigger value="approved">Đã duyệt</TabsTrigger>
           </TabsList>
 
           <TabsContent value="form">
-            <AbsenceForm children={children} onSubmit={handleAbsenceSubmit} />
+            <AbsenceForm onSubmit={handleAbsenceSubmit} />
           </TabsContent>
 
           <TabsContent value="pending">
-            <AbsenceList absences={pendingAbsences} status="pending" />
+            <AbsenceList status="pending" />
           </TabsContent>
 
           <TabsContent value="approved">
-            <AbsenceList absences={approvedAbsences} status="approved" />
+            <AbsenceList status="approved" />
           </TabsContent>
         </Tabs>
       </div>
-        <Footer />
-    </div>
 
+      <Footer />
+    </div>
   );
 }

@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   Calendar,
   User,
@@ -7,7 +8,38 @@ import {
   AlertCircle,
 } from "lucide-react";
 
-export function AbsenceList({ absences = [], status }) {
+export function AbsenceList({ status }) {
+  const child = JSON.parse(localStorage.getItem("selectedStudent"));
+  const childrenId = child?.id;
+
+  const [absences, setAbsences] = useState([]);
+
+  // ✅ GỌI API GET THEO CHILD_ID
+  const fetchAbsences = async () => {
+    try {
+      const res = await fetch(
+        `https://bk-kindergarten.fly.dev/api/absence/get?child_id=${childrenId}`
+      );
+      const data = await res.json();
+
+      const list = Array.isArray(data) ? data : [data];
+
+      // ✅ LỌC THEO STATUS
+      const filtered =
+        status === "pending"
+          ? list.filter((a) => a.status === "WAITING")
+          : list.filter((a) => a.status === "ACCEPTED");
+
+      setAbsences(filtered);
+    } catch (err) {
+      console.error("GET absence error:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (childrenId) fetchAbsences();
+  }, [childrenId, status]);
+
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
     const date = new Date(dateString);
@@ -120,17 +152,6 @@ export function AbsenceList({ absences = [], status }) {
                     </p>
                   )}
                 </div>
-              </div>
-            )}
-
-            {absence.notes && (
-              <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
-                <p className="text-gray-700 text-sm mb-1">
-                  Ghi chú:
-                </p>
-                <p className="text-gray-900">
-                  {absence.notes}
-                </p>
               </div>
             )}
           </div>
